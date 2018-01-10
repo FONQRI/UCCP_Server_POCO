@@ -2,10 +2,10 @@
 #define DATABASE_H
 
 #include <iostream>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <vector>
 
 #include <Poco/UUIDGenerator.h>
 
@@ -33,13 +33,13 @@ class Database {
 	size_t getPoolCapacity() const;
 	void setPoolCapacity(const size_t &value);
 
-private:
+  private:
 	bool isPoolRunning;
 	size_t poolCapacity;
 	size_t poolPeakCapacity;
 	std::string hostAddress;
 	std::string port;
-	std::vector<std::thread> threadList;
+	std::list<std::thread> threadList;
 	typedef Poco::PoolableObjectFactory<Poco::MongoDB::Connection,
 					Poco::MongoDB::Connection::Ptr>
 	MongoDBConnectionFactory;
