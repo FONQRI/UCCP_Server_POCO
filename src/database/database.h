@@ -2,10 +2,10 @@
 #define DATABASE_H
 
 #include <iostream>
-#include <list>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include <Poco/UUIDGenerator.h>
 
@@ -21,25 +21,59 @@ using namespace Poco;
 
 class Database {
   public:
-	Database();
-	void connect();
+	enum BookType { NOVEL = 0, STORY };
+	enum ResponceType { OK = 0, ERROR };
 
-	std::string getHostAddress() const;
-	void setHostAddress(const std::string &value);
+	enum SharedMood { PRIVATE = 0, PUBLIC };
+	struct Comment {
+	int id;
+	std::string dateTime;
+	bool edited;
+	std::string content;
+	};
 
-	std::string getPort() const;
-	void setPort(const std::string &value);
+	struct BookPart {
+	int id;
+	std::string name;
+	size_t version;
+	size_t seensCount;
+	size_t likesCount;
+	std::string content;
+	std::vector<Comment> comments;
+	};
 
-	size_t getPoolCapacity() const;
-	void setPoolCapacity(const size_t &value);
+	struct Book {
+	std::string author;
+	int id;
+	std::string name;
+	BookType type;
+	int version;
+	std::vector<std::string> tags;
+	SharedMood sharedMode;
+	int seensCount;
+	int likesCount;
+	std::vector<std::string> likedUsers;
+	std::vector<std::string> SharedWith;
+	std::vector<BookPart> parts;
+	std::vector<Comment> comments;
+	};
+	static void connect();
+
+	static std::string getHostAddress();
+	static void setHostAddress(const std::string &value);
+
+	static std::string getPort();
+	static void setPort(const std::string &value);
+
+	static size_t getPoolCapacity();
+	static void setPoolCapacity(const size_t &value);
+
+	static ResponceType insertBook(Book &inputBook);
 
   private:
-	bool isPoolRunning;
-	size_t poolCapacity;
-	size_t poolPeakCapacity;
-	std::string hostAddress;
-	std::string port;
-	std::list<std::thread> threadList;
+	Database();
+
+	// typedefs
 	typedef Poco::PoolableObjectFactory<Poco::MongoDB::Connection,
 					Poco::MongoDB::Connection::Ptr>
 	MongoDBConnectionFactory;
@@ -51,12 +85,24 @@ class Database {
 	MongoDBConnectionPool;
 	typedef std::unique_ptr<MongoDBConnectionPool> MongoDBConnectionPoolPtr;
 
-	MongoDBConnectionFactoryPtr g_connectionFactory;
-	MongoDBConnectionPoolPtr g_connectionPool;
+	// variables & objects
+	static bool isPoolRunning;
+	static size_t poolCapacity;
+	static size_t poolPeakCapacity;
+	static std::string hostAddress;
+	static std::string port;
+	static std::vector<std::thread> threadList;
+	static MongoDBConnectionFactoryPtr g_connectionFactory;
+	static MongoDBConnectionPoolPtr g_connectionPool;
+	static Poco::MongoDB::Database g_db;
 
-	Poco::MongoDB::Database g_db;
-
-	void run();
+	// functions
+	static void run();
+	static Poco::MongoDB::PooledConnection takeConnection();
+	static Int64 extractInt64(const MongoDB::Document &d,
+				  const std::string &name);
+	static void verifyResponse(const MongoDB::Document &response,
+				   bool expectOK = true);
 };
 
 #endif // DATABASE_H

@@ -23,29 +23,13 @@
 void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)
 {
-	//	Database::connect();
-	//	// NOTE START workaround
-	//	std::vector<std::thread> threads;
-	//	for (int i(0); i < 10; ++i) {
-	//	//        const std::string id =
-	//	//        UUIDGenerator().createRandom().toString();
-	//	const std::string id = std::to_string(i);
 
-	//	Database::insert(id);
-	//	threads.push_back(std::thread([id]() {
-	//		Database::query(id);
-	//		Database::remove(id);
-	//	}));
-	//	}
-	//	std::cout << "waiting for threads..." << std::endl;
-	//	for (auto &t : threads) {
-	//	if (t.joinable()) {
-	//		t.join();
-	//	}
-	//	}
-	// NOTE END test ***********************
-	Database db;
-	db.connect();
+	// NOTE START workaround testing database
+
+	Database::Book book;
+	Database::connect();
+	Database::insertBook(book);
+	// **********************************
 
 	response.setChunkedTransferEncoding(true);
 	response.setContentType("text/html");
