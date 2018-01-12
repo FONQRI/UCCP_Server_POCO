@@ -24,11 +24,14 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)
 {
 
-	// NOTE START workaround testing database
+	// NOTE START workaround testing database only for test
 
-	Database::Book book;
-	Database::connect();
-	Database::insertBook(book);
+	//	Database::Book book;
+	//	std::vector<Database::Book> bookList;
+	//	bookList.push_back(book);
+	//	Database::connect();
+	//	Database::insertBooks(bookList);
+
 	// **********************************
 
 	response.setChunkedTransferEncoding(true);

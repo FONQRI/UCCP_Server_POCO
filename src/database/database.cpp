@@ -26,86 +26,141 @@ size_t Database::getPoolCapacity() { return poolCapacity; }
 
 void Database::setPoolCapacity(const size_t &value) { poolCapacity = value; }
 
-Database::ResponceType Database::insertBook(Database::Book &inputBook)
+Database::ResponceType Database::insertBooks(std::vector<Book> &inputBooks)
 {
 	// TODO needs to use Book struct instade of constant values
 	try {
 		auto con = takeConnection();
 		auto c = static_cast<MongoDB::Connection::Ptr>(con);
-
 		MongoDB::Document::Ptr booksObj(new MongoDB::Document());
-		booksObj->add("author", "FONQRI");
-		MongoDB::Array::Ptr bookObjList(new MongoDB::Array());
-		MongoDB::Document::Ptr bookObj(new MongoDB::Document());
-		bookObj->add("id", 0);
-		bookObj->add("name", "book name");
-		bookObj->add("type", "novel");
-		bookObj->add("version", 0);
+		booksObj->add("author", inputBooks.at(0).author);
 
-		MongoDB::Array::Ptr bookTags(new MongoDB::Array());
+		MongoDB::Array::Ptr bookList(new MongoDB::Array());
+		int bookIndex = 0;
+		for (auto &book : inputBooks) {
+			// MongoDB::Document::Ptr booksObj(new MongoDB::Document());
+			MongoDB::Document::Ptr bookObj(new MongoDB::Document());
+			bookObj->add("id", book.id);
+			bookObj->add("name", book.name);
+			bookObj->add("type", std::to_string(book.type));
+			bookObj->add("version", book.version);
 
-		bookTags->add(std::to_string(0), "love");
-		bookTags->add(std::to_string(1), "fun");
-		bookObj->add("tags", bookTags);
+			MongoDB::Array::Ptr bookTags(new MongoDB::Array());
 
-		bookObj->add("sharedMode", "private");
-		bookObj->add("seensCount", 0);
-		bookObj->add("likesCount", 0);
+			for (size_t i = 0; i < book.tags.size(); i++) {
+				bookTags->add(std::to_string(i), book.tags.at(i));
+			}
 
-		MongoDB::Array::Ptr likedUsersList(new MongoDB::Array());
+			bookObj->add("tags", bookTags);
 
-		likedUsersList->add(std::to_string(0), "ali");
-		likedUsersList->add(std::to_string(1), "behnam");
+			bookObj->add("sharedMode", std::to_string(book.sharedMode));
+			bookObj->add("seensCount", book.seensCount);
+			bookObj->add("likesCount", book.likesCount);
 
-		bookObj->add("likedUsers", likedUsersList);
+			MongoDB::Array::Ptr likedUsersList(new MongoDB::Array());
 
-		MongoDB::Array::Ptr sharedWithList(new MongoDB::Array());
+			for (size_t i = 0; i < book.likedUsers.size(); i++) {
+				likedUsersList->add(std::to_string(i),
+						book.likedUsers.at(i));
+			}
 
-		sharedWithList->add(std::to_string(0), "ali");
-		sharedWithList->add(std::to_string(1), "behnam");
-		bookObj->add("SharedWith", sharedWithList);
+			bookObj->add("likedUsers", likedUsersList);
 
-		MongoDB::Document::Ptr bookCommentsObj(new MongoDB::Document());
+			MongoDB::Array::Ptr sharedWithList(new MongoDB::Array());
 
-		bookCommentsObj->add("id", "user id");
-		bookCommentsObj->add("dateTime", "Date and Time");
-		bookCommentsObj->add("edited", false);
+			for (size_t i = 0; i < book.SharedWith.size(); i++) {
+				sharedWithList->add(std::to_string(i),
+						book.SharedWith.at(i));
+			}
 
-		bookObj->add("comments", bookCommentsObj);
+			bookObj->add("SharedWith", sharedWithList);
 
-		MongoDB::Array::Ptr bookPartsArray(new MongoDB::Array());
-		MongoDB::Document::Ptr bookPartObj(new MongoDB::Document());
+			MongoDB::Array::Ptr bookCommentsArray(new MongoDB::Array());
 
-		bookPartObj->add("id", 0);
-		bookPartObj->add("name", "part name");
-		bookPartObj->add("version", 0);
-		bookPartObj->add("seensCount", 0);
-		bookPartObj->add("likesCount", 0);
-		bookPartObj->add("content", "content");
-		bookPartsArray->add(std::to_string(0), bookPartObj);
+			for (size_t i = 0; i < book.comments.size(); i++) {
+				MongoDB::Document::Ptr bookCommentObj(
+				new MongoDB::Document());
 
-		MongoDB::Array::Ptr partCommentsArray(new MongoDB::Array());
-		MongoDB::Document::Ptr partCommentsObj(new MongoDB::Document());
+				bookCommentObj->add("id", book.comments.at(i).id);
+				bookCommentObj->add("dateTime",
+						book.comments.at(i).dateTime);
+				bookCommentObj->add("edited",
+						book.comments.at(i).edited);
+				bookCommentObj->add("content",
+						book.comments.at(i).content);
+				bookCommentsArray->add(std::to_string(i),
+						   bookCommentObj);
+			}
+			bookObj->add("comments", bookCommentsArray);
 
-		partCommentsObj->add("id", "user id");
-		partCommentsObj->add("dateTime", "Date and time");
-		partCommentsObj->add("edited", false);
-		bookPartObj->add("content", "content");
+			MongoDB::Array::Ptr bookPartsArray(new MongoDB::Array());
 
-		partCommentsArray->add(std::to_string(0), partCommentsObj);
-		bookPartObj->add("comments", partCommentsArray);
+			for (size_t i = 0; i < book.parts.size(); i++) {
+				MongoDB::Document::Ptr bookPartObj(
+				new MongoDB::Document());
 
-		bookObj->add("parts", bookPartsArray);
-		bookObjList->add(std::to_string(0), bookObj);
+				bookPartObj->add("id", book.parts.at(i).id);
+				bookPartObj->add("name", book.parts.at(i).name);
+				bookPartObj->add("version",
+						 book.parts.at(i).version);
+				bookPartObj->add("seensCount",
+						 book.parts.at(i).seensCount);
+				bookPartObj->add("likesCount",
+						 book.parts.at(i).likesCount);
+				bookPartObj->add("content",
+						 book.parts.at(i).content);
 
-		booksObj->add("Book", bookObjList);
+				MongoDB::Array::Ptr partCommentsArray(
+				new MongoDB::Array());
 
-		MongoDB::Array::Ptr documents(new MongoDB::Array());
-		documents->add(std::to_string(0), booksObj);
+				for (size_t commentIndex = 0;
+					 commentIndex < book.parts.size();
+					 commentIndex++) {
+
+					MongoDB::Document::Ptr partCommentsObj(
+					new MongoDB::Document());
+
+					partCommentsObj->add(
+					"id", book.parts.at(i)
+						  .comments.at(commentIndex)
+						  .id);
+					partCommentsObj->add(
+					"dateTime",
+					book.parts.at(i)
+						.comments.at(commentIndex)
+						.dateTime);
+					partCommentsObj->add(
+					"edited", book.parts.at(i)
+							  .comments.at(commentIndex)
+							  .edited);
+					bookPartObj->add(
+					"content",
+					book.parts.at(i)
+						.comments.at(commentIndex)
+						.content);
+
+					partCommentsArray->add(
+					std::to_string(commentIndex),
+					partCommentsObj);
+				}
+				bookPartObj->add("comments", partCommentsArray);
+				bookPartsArray->add(std::to_string(i), bookPartObj);
+			}
+
+			bookObj->add("parts", bookPartsArray);
+
+			bookList->add(std::to_string(0), bookObj);
+			bookIndex++;
+		}
+
+		booksObj->add("books", bookList);
+
+		MongoDB::Array::Ptr booksList(new MongoDB::Array());
+		booksList->add(std::to_string(0), booksObj);
 		auto insert = g_db.createCommand();
 		insert->selector()
 		.add("insert", "Object")
-		.add("document", documents);
+		.add("documents", booksList);
 
 		std::cout << "INSERT : "
 			  << "Done" << std::endl;
@@ -143,8 +198,8 @@ void Database::run()
 
 Poco::MongoDB::PooledConnection Database::takeConnection()
 {
-	//	static std::mutex connectionPoolLock;
-	//	std::lock_guard<std::mutex> l(connectionPoolLock);
+	static std::mutex connectionPoolLock;
+	std::lock_guard<std::mutex> l(connectionPoolLock);
 
 	Poco::MongoDB::PooledConnection pooledConnection(*g_connectionPool);
 	auto c = static_cast<Poco::MongoDB::Connection::Ptr>(pooledConnection);

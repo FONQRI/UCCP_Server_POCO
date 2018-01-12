@@ -4,10 +4,9 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
-
-#include <Poco/UUIDGenerator.h>
 
 #include <Poco/MongoDB/Array.h>
 #include <Poco/MongoDB/Connection.h>
@@ -16,6 +15,7 @@
 #include <Poco/MongoDB/Document.h>
 #include <Poco/MongoDB/Element.h>
 #include <Poco/MongoDB/PoolableConnectionFactory.h>
+#include <Poco/UUIDGenerator.h>
 
 using namespace Poco;
 
@@ -35,9 +35,9 @@ class Database {
 	struct BookPart {
 	int id;
 	std::string name;
-	size_t version;
-	size_t seensCount;
-	size_t likesCount;
+	int version;
+	int seensCount;
+	int likesCount;
 	std::string content;
 	std::vector<Comment> comments;
 	};
@@ -68,7 +68,7 @@ class Database {
 	static size_t getPoolCapacity();
 	static void setPoolCapacity(const size_t &value);
 
-	static ResponceType insertBook(Book &inputBook);
+	static ResponceType insertBooks(std::vector<Book> &inputBooks);
 
   private:
 	Database();
