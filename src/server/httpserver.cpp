@@ -4,11 +4,16 @@
 #include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Util/ServerApplication.h>
+
 #include <iostream>
+
+#include "database/database.h"
 HttpServer::HttpServer() {}
 
 int HttpServer::main(const std::vector<std::string> &args)
 {
+	Database::connect();
+
 	Poco::TimerCallback<HttpServer> callback(*this, &HttpServer::SafeExit);
 
 	Poco::Timer timer(250, 500);
@@ -16,7 +21,7 @@ int HttpServer::main(const std::vector<std::string> &args)
 	//	timer.start(callback);
 	//	_sw.start();
 
-	Poco::UInt16 port = 9999;
+	Poco::UInt16 port = 8888;
 
 	Poco::Net::ServerSocket socket(port);
 

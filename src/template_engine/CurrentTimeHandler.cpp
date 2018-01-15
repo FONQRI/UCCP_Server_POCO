@@ -18,22 +18,31 @@
 #include <assert.h>
 #include <list>
 #include <string>
+#include <thread>
 #include <type_traits>
 
 void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)
 {
 
-	// NOTE START workaround testing database only for test
+	// NOTE START workaround testing database only for test insertBooks
+	Database::Book book;
+	book.author = "behnam";
+	Database::BookPart bookPart;
+	book.parts.push_back(bookPart);
+	std::vector<Database::Book> bookList;
+	bookList.push_back(book);
+	Database::saveBooks(bookList);
+	std::string author{"behnam"};
 
-	//	Database::Book book;
-	//	std::vector<Database::Book> bookList;
-	//	bookList.push_back(book);
-	//	Database::connect();
-	//	Database::insertBooks(bookList);
+	Database::User user;
+	Database::saveUser(user);
+	//	std::clog << Database::getBooks(author) << std::endl;
+	//	std::clog << "worked " << std::endl;
 
 	// **********************************
 
+	// std::clog << std::this_thread::get_id() << std::endl;
 	response.setChunkedTransferEncoding(true);
 	response.setContentType("text/html");
 
@@ -125,12 +134,12 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 
 	booksObj.set("Book", bookObjList);
 
-	std::stringstream ss;
-	booksObj.stringify(ss);
-	auto str = ss.str();
-	responseStream << str;
+	//	std::stringstream ss;
+	//	booksObj.stringify(ss);
+	//	auto str = ss.str();
+	//	responseStream << str;
 
-	// responseStream << str;
+	responseStream << Database::getBooks(author);
 
 	//	// array of objects
 	//	std::string json =

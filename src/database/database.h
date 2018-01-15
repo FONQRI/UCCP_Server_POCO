@@ -25,38 +25,66 @@ class Database {
 	enum ResponceType { OK = 0, ERROR };
 
 	enum SharedMood { PRIVATE = 0, PUBLIC };
+
+	struct DateTime {
+	int day{0};
+	int month{0};
+	int year{0};
+	int hour{0};
+	int minute{0};
+	int second{0};
+	};
+
 	struct Comment {
-	int id;
-	std::string dateTime;
-	bool edited;
-	std::string content;
+	int id{0};
+	bool edited{false};
+	DateTime lastEditDateTime;
+	std::string content{""};
 	};
 
 	struct BookPart {
-	int id;
-	std::string name;
-	int version;
-	int seensCount;
-	int likesCount;
-	std::string content;
+	int id{0};
+	int version{0};
+	int seensCount{0};
+	int likesCount{0};
+	std::string content{""};
+	std::string name{""};
+	DateTime publishDateTime;
+	DateTime lastEditDateTime;
+
 	std::vector<Comment> comments;
 	};
 
 	struct Book {
-	std::string author;
-	int id;
-	std::string name;
+	int id{0};
+	int version{0};
+	int seensCount{0};
+	int likesCount{0};
+	std::string author{""};
+	std::string name{""};
 	BookType type;
-	int version;
-	std::vector<std::string> tags;
+	DateTime publishDateTime;
+	DateTime lastEditDateTime;
 	SharedMood sharedMode;
-	int seensCount;
-	int likesCount;
+	std::vector<std::string> tags;
 	std::vector<std::string> likedUsers;
 	std::vector<std::string> SharedWith;
 	std::vector<BookPart> parts;
 	std::vector<Comment> comments;
 	};
+
+	struct User {
+	long studyDuration{000000000000};
+	std::string userName{""};
+	std::string name{""};
+	std::string family{""};
+	std::string sex{""};
+	std::string email{""};
+	std::string phoneNumber{""};
+	std::vector<std::string> favoriteTags;
+	DateTime berthday;
+	};
+
 	static void connect();
 
 	static std::string getHostAddress();
@@ -68,7 +96,10 @@ class Database {
 	static size_t getPoolCapacity();
 	static void setPoolCapacity(const size_t &value);
 
-	static ResponceType insertBooks(std::vector<Book> &inputBooks);
+	static ResponceType saveBooks(std::vector<Book> &inputBooks);
+	static std::string getBooks(std::string &author);
+	static ResponceType saveUser(User &user);
+	static std::string getUser(std::string &userName);
 
   private:
 	Database();
