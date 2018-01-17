@@ -6,6 +6,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <vector>
 
 #include <Poco/MongoDB/Array.h>
@@ -60,6 +61,7 @@ class Database {
 	int version{0};
 	int seensCount{0};
 	int likesCount{0};
+	std::string shabakNumber{""};
 	std::string author{""};
 	std::string name{""};
 	BookType type;
@@ -96,10 +98,11 @@ class Database {
 	static size_t getPoolCapacity();
 	static void setPoolCapacity(const size_t &value);
 
-	static ResponceType saveBooks(std::vector<Book> &inputBooks);
+	static ResponceType saveBook(Book &inputBook);
 	static std::string getBooks(std::string &author);
 	static ResponceType saveUser(User &user);
 	static std::string getUser(std::string &userName);
+	static Database::ResponceType updateUser(User &user);
 
   private:
 	Database();

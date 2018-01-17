@@ -28,242 +28,215 @@ size_t Database::getPoolCapacity() { return poolCapacity; }
 
 void Database::setPoolCapacity(const size_t &value) { poolCapacity = value; }
 
-Database::ResponceType Database::saveBooks(std::vector<Book> &inputBooks)
+Database::ResponceType Database::saveBook(Book &inputBook)
 {
-	// TODO needs to use Book struct instade of constant values
 	try {
 		auto con = takeConnection();
 		auto c = static_cast<MongoDB::Connection::Ptr>(con);
-		MongoDB::Document::Ptr booksObj(new MongoDB::Document());
-		booksObj->add("author", inputBooks.at(0).author);
 
 		MongoDB::Array::Ptr bookList(new MongoDB::Array());
-		int bookIndex = 0;
-		for (auto &book : inputBooks) {
-			// MongoDB::Document::Ptr booksObj(new MongoDB::Document());
-			MongoDB::Document::Ptr bookObj(new MongoDB::Document());
-			bookObj->add("id", book.id);
-			bookObj->add("name", book.name);
-			bookObj->add("type", std::to_string(book.type));
-			bookObj->add("version", book.version);
+
+		MongoDB::Document::Ptr bookObj(new MongoDB::Document());
+		bookObj->add("author", inputBook.author);
+		bookObj->add("id", inputBook.id);
+		bookObj->add("shabakNumber", inputBook.shabakNumber);
+		bookObj->add("name", inputBook.name);
+		bookObj->add("type", std::to_string(inputBook.type));
+		bookObj->add("version", inputBook.version);
+
+		MongoDB::Document::Ptr publishDateTime(new MongoDB::Document());
+		publishDateTime->add("day", inputBook.publishDateTime.day);
+		publishDateTime->add("month", inputBook.publishDateTime.month);
+		publishDateTime->add("year", inputBook.publishDateTime.year);
+		publishDateTime->add("hour", inputBook.publishDateTime.hour);
+		publishDateTime->add("minute", inputBook.publishDateTime.minute);
+		publishDateTime->add("second", inputBook.publishDateTime.second);
+
+		bookObj->add("publishDateTime", publishDateTime);
+
+		MongoDB::Document::Ptr lastEditDateTime(new MongoDB::Document());
+		lastEditDateTime->add("day", inputBook.lastEditDateTime.day);
+		lastEditDateTime->add("month", inputBook.lastEditDateTime.month);
+		lastEditDateTime->add("year", inputBook.lastEditDateTime.year);
+		lastEditDateTime->add("hour", inputBook.lastEditDateTime.hour);
+		lastEditDateTime->add("minute", inputBook.lastEditDateTime.minute);
+		lastEditDateTime->add("second", inputBook.lastEditDateTime.second);
+
+		bookObj->add("lastEditDateTime", lastEditDateTime);
+
+		MongoDB::Array::Ptr bookTags(new MongoDB::Array());
+
+		for (size_t i = 0; i < inputBook.tags.size(); i++) {
+			bookTags->add(std::to_string(i), inputBook.tags.at(i));
+		}
+
+		bookObj->add("tags", bookTags);
+
+		bookObj->add("sharedMode", std::to_string(inputBook.sharedMode));
+		bookObj->add("seensCount", inputBook.seensCount);
+		bookObj->add("likesCount", inputBook.likesCount);
+
+		MongoDB::Array::Ptr likedUsersList(new MongoDB::Array());
+
+		for (size_t i = 0; i < inputBook.likedUsers.size(); i++) {
+			likedUsersList->add(std::to_string(i),
+					inputBook.likedUsers.at(i));
+		}
+
+		bookObj->add("likedUsers", likedUsersList);
+
+		MongoDB::Array::Ptr sharedWithList(new MongoDB::Array());
+
+		for (size_t i = 0; i < inputBook.SharedWith.size(); i++) {
+			sharedWithList->add(std::to_string(i),
+					inputBook.SharedWith.at(i));
+		}
+
+		bookObj->add("SharedWith", sharedWithList);
+
+		MongoDB::Array::Ptr bookCommentsArray(new MongoDB::Array());
+
+		for (size_t i = 0; i < inputBook.comments.size(); i++) {
+			MongoDB::Document::Ptr bookCommentObj(
+			new MongoDB::Document());
+
+			bookCommentObj->add("id", inputBook.comments.at(i).id);
 
 			MongoDB::Document::Ptr publishDateTime(
 			new MongoDB::Document());
-			publishDateTime->add("day", book.publishDateTime.day);
-			publishDateTime->add("month", book.publishDateTime.month);
-			publishDateTime->add("year", book.publishDateTime.year);
-			publishDateTime->add("hour", book.publishDateTime.hour);
-			publishDateTime->add("minute", book.publishDateTime.minute);
-			publishDateTime->add("second", book.publishDateTime.second);
+			publishDateTime->add(
+			"day", inputBook.comments.at(i).lastEditDateTime.day);
+			publishDateTime->add(
+			"month",
+			inputBook.comments.at(i).lastEditDateTime.month);
+			publishDateTime->add(
+			"year", inputBook.comments.at(i).lastEditDateTime.year);
+			publishDateTime->add(
+			"hour", inputBook.comments.at(i).lastEditDateTime.hour);
+			publishDateTime->add(
+			"minute",
+			inputBook.comments.at(i).lastEditDateTime.minute);
+			publishDateTime->add(
+			"second",
+			inputBook.comments.at(i).lastEditDateTime.second);
 
-			bookObj->add("publishDateTime", publishDateTime);
+			bookCommentObj->add("dateTime", publishDateTime);
+
+			bookCommentObj->add("edited",
+					inputBook.comments.at(i).edited);
+			bookCommentObj->add("content",
+					inputBook.comments.at(i).content);
+			bookCommentsArray->add(std::to_string(i), bookCommentObj);
+		}
+		bookObj->add("comments", bookCommentsArray);
+
+		MongoDB::Array::Ptr bookPartsArray(new MongoDB::Array());
+
+		for (size_t i = 0; i < inputBook.parts.size(); i++) {
+			MongoDB::Document::Ptr bookPartObj(new MongoDB::Document());
+
+			bookPartObj->add("id", inputBook.parts.at(i).id);
+			bookPartObj->add("name", inputBook.parts.at(i).name);
+
+			MongoDB::Document::Ptr publishDateTime(
+			new MongoDB::Document());
+			publishDateTime->add("day", inputBook.publishDateTime.day);
+			publishDateTime->add("month",
+					 inputBook.publishDateTime.month);
+			publishDateTime->add("year",
+					 inputBook.publishDateTime.year);
+			publishDateTime->add("hour",
+					 inputBook.publishDateTime.hour);
+			publishDateTime->add("minute",
+					 inputBook.publishDateTime.minute);
+			publishDateTime->add("second",
+					 inputBook.publishDateTime.second);
+
+			bookPartObj->add("publishDateTime", publishDateTime);
 
 			MongoDB::Document::Ptr lastEditDateTime(
 			new MongoDB::Document());
-			lastEditDateTime->add("day", book.lastEditDateTime.day);
-			lastEditDateTime->add("month", book.lastEditDateTime.month);
-			lastEditDateTime->add("year", book.lastEditDateTime.year);
-			lastEditDateTime->add("hour", book.lastEditDateTime.hour);
+			lastEditDateTime->add("day",
+					  inputBook.lastEditDateTime.day);
+			lastEditDateTime->add("month",
+					  inputBook.lastEditDateTime.month);
+			lastEditDateTime->add("year",
+					  inputBook.lastEditDateTime.year);
+			lastEditDateTime->add("hour",
+					  inputBook.lastEditDateTime.hour);
 			lastEditDateTime->add("minute",
-					  book.lastEditDateTime.minute);
+					  inputBook.lastEditDateTime.minute);
 			lastEditDateTime->add("second",
-					  book.lastEditDateTime.second);
+					  inputBook.lastEditDateTime.second);
 
-			bookObj->add("lastEditDateTime", lastEditDateTime);
+			bookPartObj->add("lastEditDateTime", lastEditDateTime);
 
-			MongoDB::Array::Ptr bookTags(new MongoDB::Array());
+			bookPartObj->add("version", inputBook.parts.at(i).version);
+			bookPartObj->add("seensCount",
+					 inputBook.parts.at(i).seensCount);
+			bookPartObj->add("likesCount",
+					 inputBook.parts.at(i).likesCount);
+			bookPartObj->add("content", inputBook.parts.at(i).content);
 
-			for (size_t i = 0; i < book.tags.size(); i++) {
-				bookTags->add(std::to_string(i), book.tags.at(i));
-			}
+			MongoDB::Array::Ptr partCommentsArray(new MongoDB::Array());
 
-			bookObj->add("tags", bookTags);
+			for (size_t commentIndex = 0;
+				 commentIndex <
+				 inputBook.parts.at(i).comments.size();
+				 commentIndex++) {
 
-			bookObj->add("sharedMode", std::to_string(book.sharedMode));
-			bookObj->add("seensCount", book.seensCount);
-			bookObj->add("likesCount", book.likesCount);
-
-			MongoDB::Array::Ptr likedUsersList(new MongoDB::Array());
-
-			for (size_t i = 0; i < book.likedUsers.size(); i++) {
-				likedUsersList->add(std::to_string(i),
-						book.likedUsers.at(i));
-			}
-
-			bookObj->add("likedUsers", likedUsersList);
-
-			MongoDB::Array::Ptr sharedWithList(new MongoDB::Array());
-
-			for (size_t i = 0; i < book.SharedWith.size(); i++) {
-				sharedWithList->add(std::to_string(i),
-						book.SharedWith.at(i));
-			}
-
-			bookObj->add("SharedWith", sharedWithList);
-
-			MongoDB::Array::Ptr bookCommentsArray(new MongoDB::Array());
-
-			for (size_t i = 0; i < book.comments.size(); i++) {
-				MongoDB::Document::Ptr bookCommentObj(
+				MongoDB::Document::Ptr partCommentsObj(
 				new MongoDB::Document());
 
-				bookCommentObj->add("id", book.comments.at(i).id);
+				partCommentsObj->add("id",
+						 inputBook.parts.at(i)
+							 .comments.at(commentIndex)
+							 .id);
 
 				MongoDB::Document::Ptr publishDateTime(
 				new MongoDB::Document());
 				publishDateTime->add(
 				"day",
-				book.comments.at(i).lastEditDateTime.day);
-				publishDateTime->add(
-				"month",
-				book.comments.at(i).lastEditDateTime.month);
+				inputBook.comments.at(i).lastEditDateTime.day);
+				publishDateTime->add("month",
+						 inputBook.comments.at(i)
+							 .lastEditDateTime.month);
 				publishDateTime->add(
 				"year",
-				book.comments.at(i).lastEditDateTime.year);
+				inputBook.comments.at(i).lastEditDateTime.year);
 				publishDateTime->add(
 				"hour",
-				book.comments.at(i).lastEditDateTime.hour);
-				publishDateTime->add(
-				"minute",
-				book.comments.at(i).lastEditDateTime.minute);
-				publishDateTime->add(
-				"second",
-				book.comments.at(i).lastEditDateTime.second);
-
-				bookCommentObj->add("dateTime", publishDateTime);
-
-				bookCommentObj->add("edited",
-						book.comments.at(i).edited);
-				bookCommentObj->add("content",
-						book.comments.at(i).content);
-				bookCommentsArray->add(std::to_string(i),
-						   bookCommentObj);
-			}
-			bookObj->add("comments", bookCommentsArray);
-
-			MongoDB::Array::Ptr bookPartsArray(new MongoDB::Array());
-
-			for (size_t i = 0; i < book.parts.size(); i++) {
-				MongoDB::Document::Ptr bookPartObj(
-				new MongoDB::Document());
-
-				bookPartObj->add("id", book.parts.at(i).id);
-				bookPartObj->add("name", book.parts.at(i).name);
-
-				MongoDB::Document::Ptr publishDateTime(
-				new MongoDB::Document());
-				publishDateTime->add("day",
-						 book.publishDateTime.day);
-				publishDateTime->add("month",
-						 book.publishDateTime.month);
-				publishDateTime->add("year",
-						 book.publishDateTime.year);
-				publishDateTime->add("hour",
-						 book.publishDateTime.hour);
+				inputBook.comments.at(i).lastEditDateTime.hour);
 				publishDateTime->add("minute",
-						 book.publishDateTime.minute);
+						 inputBook.comments.at(i)
+							 .lastEditDateTime.minute);
 				publishDateTime->add("second",
-						 book.publishDateTime.second);
+						 inputBook.comments.at(i)
+							 .lastEditDateTime.second);
 
-				bookPartObj->add("publishDateTime",
-						 publishDateTime);
+				partCommentsObj->add("dateTime", publishDateTime);
 
-				MongoDB::Document::Ptr lastEditDateTime(
-				new MongoDB::Document());
-				lastEditDateTime->add("day",
-						  book.lastEditDateTime.day);
-				lastEditDateTime->add("month",
-						  book.lastEditDateTime.month);
-				lastEditDateTime->add("year",
-						  book.lastEditDateTime.year);
-				lastEditDateTime->add("hour",
-						  book.lastEditDateTime.hour);
-				lastEditDateTime->add("minute",
-						  book.lastEditDateTime.minute);
-				lastEditDateTime->add("second",
-						  book.lastEditDateTime.second);
-
-				bookPartObj->add("lastEditDateTime",
-						 lastEditDateTime);
-
-				bookPartObj->add("version",
-						 book.parts.at(i).version);
-				bookPartObj->add("seensCount",
-						 book.parts.at(i).seensCount);
-				bookPartObj->add("likesCount",
-						 book.parts.at(i).likesCount);
+				partCommentsObj->add("edited",
+						 inputBook.parts.at(i)
+							 .comments.at(commentIndex)
+							 .edited);
 				bookPartObj->add("content",
-						 book.parts.at(i).content);
+						 inputBook.parts.at(i)
+						 .comments.at(commentIndex)
+						 .content);
 
-				MongoDB::Array::Ptr partCommentsArray(
-				new MongoDB::Array());
-
-				for (size_t commentIndex = 0;
-					 commentIndex <
-					 book.parts.at(i).comments.size();
-					 commentIndex++) {
-
-					MongoDB::Document::Ptr partCommentsObj(
-					new MongoDB::Document());
-
-					partCommentsObj->add(
-					"id", book.parts.at(i)
-						  .comments.at(commentIndex)
-						  .id);
-
-					MongoDB::Document::Ptr publishDateTime(
-					new MongoDB::Document());
-					publishDateTime->add(
-					"day", book.comments.at(i)
-						   .lastEditDateTime.day);
-					publishDateTime->add(
-					"month", book.comments.at(i)
-							 .lastEditDateTime.month);
-					publishDateTime->add(
-					"year", book.comments.at(i)
-							.lastEditDateTime.year);
-					publishDateTime->add(
-					"hour", book.comments.at(i)
-							.lastEditDateTime.hour);
-					publishDateTime->add(
-					"minute", book.comments.at(i)
-							  .lastEditDateTime.minute);
-					publishDateTime->add(
-					"second", book.comments.at(i)
-							  .lastEditDateTime.second);
-
-					partCommentsObj->add("dateTime",
-							 publishDateTime);
-
-					partCommentsObj->add(
-					"edited", book.parts.at(i)
-							  .comments.at(commentIndex)
-							  .edited);
-					bookPartObj->add(
-					"content",
-					book.parts.at(i)
-						.comments.at(commentIndex)
-						.content);
-
-					partCommentsArray->add(
-					std::to_string(commentIndex),
-					partCommentsObj);
-				}
-
-				bookPartObj->add("comments", partCommentsArray);
-				bookPartsArray->add(std::to_string(i), bookPartObj);
+				partCommentsArray->add(std::to_string(commentIndex),
+						   partCommentsObj);
 			}
 
-			bookObj->add("parts", bookPartsArray);
-
-			bookList->add(std::to_string(0), bookObj);
-			bookIndex++;
+			bookPartObj->add("comments", partCommentsArray);
+			bookPartsArray->add(std::to_string(i), bookPartObj);
 		}
 
-		booksObj->add("books", bookList);
+		bookObj->add("parts", bookPartsArray);
 
 		MongoDB::Array::Ptr booksList(new MongoDB::Array());
-		booksList->add(std::to_string(0), booksObj);
+		booksList->add(std::to_string(0), bookObj);
 		auto insert = g_db.createCommand();
 		insert->selector()
 		.add("insert", "Books")
@@ -399,6 +372,70 @@ std::string Database::getUser(std::string &userName)
 			  << std::endl;
 	}
 	return "";
+}
+
+Database::ResponceType Database::updateUser(Database::User &user)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+		document->add("userName", user.userName);
+		document->add("name", user.name);
+		document->add("family", user.family);
+		document->add("sex", user.sex);
+
+		MongoDB::Array::Ptr favoriteTags(new MongoDB::Array());
+		for (size_t i = 0; i < user.favoriteTags.size(); i++) {
+			favoriteTags->add(std::to_string(i),
+					  user.favoriteTags.at(i));
+		}
+		document->add("favoriteTags", favoriteTags);
+
+		document->add("email", user.email);
+		document->add("phoneNumber", user.phoneNumber);
+		document->add("studyDuration", user.studyDuration);
+
+		MongoDB::Document::Ptr dateDocument(new MongoDB::Document());
+		dateDocument->add("day", user.berthday.day);
+		dateDocument->add("month", user.berthday.month);
+		dateDocument->add("year", user.berthday.year);
+		dateDocument->add("hour", user.berthday.hour);
+		dateDocument->add("minute", user.berthday.minute);
+		dateDocument->add("second", user.berthday.second);
+
+		document->add("berthday", dateDocument);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		query->add("userName", user.userName);
+
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+		updates->add(std::to_string(0), update);
+
+		auto deleteCmd = g_db.createCommand();
+		deleteCmd->selector()
+		.add("update", "Users")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*deleteCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << user.userName
+			  << " failed: " << e.displayText() << std::endl;
+		return ResponceType::ERROR;
+	}
 }
 
 void Database::run()

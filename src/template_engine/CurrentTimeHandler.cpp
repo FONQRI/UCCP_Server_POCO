@@ -19,6 +19,7 @@
 #include <list>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 
 void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
@@ -30,13 +31,16 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	book.author = "behnam";
 	Database::BookPart bookPart;
 	book.parts.push_back(bookPart);
-	std::vector<Database::Book> bookList;
-	bookList.push_back(book);
-	Database::saveBooks(bookList);
+
+	Database::saveBook(book);
 	std::string author{"behnam"};
 
-	Database::User user;
-	Database::saveUser(user);
+	//	Database::User user;
+	//	user.userName = "behnam";
+
+	//	Database::saveUser(user);
+	//	user.email = "behnamsabaghi@gmail.com";
+	//	Database::updateUser(user);
 	//	std::clog << Database::getBooks(author) << std::endl;
 	//	std::clog << "worked " << std::endl;
 
