@@ -100,6 +100,16 @@ class Database {
 
 	static ResponceType saveBook(Book &inputBook);
 	static std::string getBooks(std::string &author);
+	static Database::ResponceType insertPart(BookPart &inputBookPart,
+						 std::string &bookName);
+	static Database::ResponceType insertBookComment(Comment &comment,
+							std::string &bookName);
+
+	static Database::ResponceType insertBookPartComment(Comment &comment,
+							std::string &bookName,
+							std::string &author,
+							int &partindex);
+
 	static ResponceType saveUser(User &user);
 	static std::string getUser(std::string &userName);
 	static Database::ResponceType updateUser(User &user);

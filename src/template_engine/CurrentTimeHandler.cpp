@@ -30,19 +30,27 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	Database::Book book;
 	book.author = "behnam";
 	Database::BookPart bookPart;
+	bookPart.id = 1;
+	bookPart.name = "anghezi";
 	book.parts.push_back(bookPart);
-
-	Database::saveBook(book);
+	// Database::saveBook(book);
 	std::string author{"behnam"};
+	std::string bookName{"Book Name"};
 
+	// Database::insertPart(bookPart, author);
+	Database::Comment comment;
+	comment.content = "hello66";
+	// Database::insertBookComment(comment, author);
+	int partIndex{1};
+
+	Database::insertBookPartComment(comment, bookName, author, partIndex);
 	//	Database::User user;
 	//	user.userName = "behnam";
 
-	//	Database::saveUser(user);
+	//	//	Database::saveUser(user);
 	//	user.email = "behnamsabaghi@gmail.com";
 	//	Database::updateUser(user);
 	//	std::clog << Database::getBooks(author) << std::endl;
-	//	std::clog << "worked " << std::endl;
 
 	// **********************************
 
