@@ -57,7 +57,7 @@ class Database {
 	};
 
 	struct Book {
-	int id{0};
+	std::string id{"0"};
 	int version{0};
 	int seensCount{0};
 	int likesCount{0};
@@ -99,9 +99,24 @@ class Database {
 	static void setPoolCapacity(const size_t &value);
 
 	static ResponceType saveBook(Book &inputBook);
+	static ResponceType saveUser(User &user);
+
 	static std::string getBooks(std::string &author);
+	static std::string getUser(std::string &userName);
+
+	static Database::ResponceType updateUser(User &user);
+
+	static ResponceType deleteBook(std::string &bookId);
+	static ResponceType deleteBookPart(std::string &bookId, int &partIndex);
+	static ResponceType deleteBookComment(std::string &bookId,
+					  int &commentIndex);
+	static ResponceType deleteBookPartComment(std::string &bookId,
+						  int &partIndex,
+						  int &commentIndex);
+
 	static Database::ResponceType insertPart(BookPart &inputBookPart,
 						 std::string &bookName);
+
 	static Database::ResponceType insertBookComment(Comment &comment,
 							std::string &bookName);
 
@@ -109,10 +124,6 @@ class Database {
 							std::string &bookName,
 							std::string &author,
 							int &partindex);
-
-	static ResponceType saveUser(User &user);
-	static std::string getUser(std::string &userName);
-	static Database::ResponceType updateUser(User &user);
 
   private:
 	Database();

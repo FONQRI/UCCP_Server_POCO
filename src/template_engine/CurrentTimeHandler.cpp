@@ -30,20 +30,32 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	Database::Book book;
 	book.author = "behnam";
 	Database::BookPart bookPart;
-	bookPart.id = 1;
+	bookPart.id = 0;
 	bookPart.name = "anghezi";
 	book.parts.push_back(bookPart);
+	std::string bookId{"0"};
+
+	// Database::deleteBook(bookId);
 	// Database::saveBook(book);
 	std::string author{"behnam"};
-	std::string bookName{"Book Name"};
+	int partIndex{0};
+	int commentIndex{0};
+	//	std::string bookName{"Book Name"};
 
-	// Database::insertPart(bookPart, author);
+	//	Database::insertPart(bookPart, author);
+	//	bookPart.id = 1;
+
+	//	Database::insertPart(bookPart, author);
 	Database::Comment comment;
 	comment.content = "hello66";
 	// Database::insertBookComment(comment, author);
-	int partIndex{1};
+	// Database::deleteBookComment(bookId, partIndex, commentIndex);
+	//	int partIndex{1};
 
-	Database::insertBookPartComment(comment, bookName, author, partIndex);
+	// Database::deleteBookPart(bookId, partIndex);
+	Database::deleteBookPartComment(bookId, partIndex, commentIndex);
+
+	// Database::insertBookPartComment(comment, bookId, author, partIndex);
 	//	Database::User user;
 	//	user.userName = "behnam";
 
@@ -152,7 +164,6 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	//	responseStream << str;
 
 	responseStream << Database::getBooks(author);
-
 	//	// array of objects
 	//	std::string json =
 	//	"[ {\"test\" : 0}, { \"test1\" : [1, 2, 3], \"test2\": 4 } ]";
