@@ -15,6 +15,7 @@
 #include <Poco/MongoDB/Database.h>
 #include <Poco/MongoDB/Document.h>
 #include <Poco/MongoDB/Element.h>
+#include <Poco/MongoDB/ObjectId.h>
 #include <Poco/MongoDB/PoolableConnectionFactory.h>
 #include <Poco/UUIDGenerator.h>
 
@@ -86,7 +87,6 @@ class Database {
 	std::vector<std::string> favoriteTags;
 	DateTime berthday;
 	};
-
 	static void connect();
 
 	static std::string getHostAddress();
@@ -104,6 +104,9 @@ class Database {
 	static std::string getBooks(std::string &author);
 	static std::string getUser(std::string &userName);
 
+	static ResponceType editBookInfo(Book &inputBook);
+	static ResponceType editBookParts(std::vector<BookPart> &bookParts,
+					  std::string &bookId);
 	static Database::ResponceType updateUser(User &user);
 
 	static ResponceType deleteBook(std::string &bookId);
@@ -124,6 +127,9 @@ class Database {
 							std::string &bookName,
 							std::string &author,
 							int &partindex);
+
+	static std::string getConnectionName();
+	static void setConnectionName(const std::string &value);
 
   private:
 	Database();
@@ -150,6 +156,7 @@ class Database {
 	static MongoDBConnectionFactoryPtr g_connectionFactory;
 	static MongoDBConnectionPoolPtr g_connectionPool;
 	static Poco::MongoDB::Database g_db;
+	static std::string connectionName;
 
 	// functions
 	static void run();

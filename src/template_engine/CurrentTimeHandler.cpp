@@ -1,27 +1,29 @@
 #include "CurrentTimeHandler.h"
 
-#include <Poco/DateTime.h>
-#include <Poco/DateTimeFormat.h>
-#include <Poco/DateTimeFormatter.h>
-#include <Poco/JSON/Parser.h>
-#include <Poco/Net/HTTPServerParams.h>
-#include <Poco/URI.h>
-#include <Poco/URIStreamFactory.h>
-#include <Poco/XML/XMLWriter.h>
+#include "database/database.h"
+
+#include <assert.h>
 #include <fstream>
 #include <iostream>
-
-#include "database/database.h"
-#include <Poco/Dynamic/Var.h>
-#include <Poco/JSON/JSON.h>
-#include <Poco/JSON/Parser.h>
-#include <assert.h>
 #include <list>
 #include <string>
 #include <thread>
 #include <tuple>
 #include <type_traits>
 
+#include <Poco/DateTime.h>
+#include <Poco/DateTimeFormat.h>
+#include <Poco/DateTimeFormatter.h>
+#include <Poco/DigestStream.h>
+#include <Poco/Dynamic/Var.h>
+#include <Poco/JSON/JSON.h>
+#include <Poco/JSON/Parser.h>
+#include <Poco/JSON/Parser.h>
+#include <Poco/MD5Engine.h>
+#include <Poco/Net/HTTPServerParams.h>
+#include <Poco/URI.h>
+#include <Poco/URIStreamFactory.h>
+#include <Poco/XML/XMLWriter.h>
 void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)
 {
@@ -29,23 +31,36 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	// NOTE START workaround testing database only for test insertBooks
 	Database::Book book;
 	book.author = "behnam";
+	book.id = "behnamanghezi5";
+	book.name = "test";
+
+	std::vector<Database::BookPart> partVector;
+	for (int i = 0; i < 3; i++) {
+		Database::BookPart bookPart;
+		bookPart.id = 1;
+		bookPart.name = "anghezi " + std::to_string(i + 1);
+		partVector.push_back(bookPart);
+	}
+
+	std::string bookId{"0"};
+	// Database::editBookParts(partVector, bookId);
 	Database::BookPart bookPart;
 	bookPart.id = 0;
 	bookPart.name = "anghezi";
-	book.parts.push_back(bookPart);
-	std::string bookId{"0"};
-
 	// Database::deleteBook(bookId);
-	// Database::saveBook(book);
+	// Database::saveBookTest(book);
+	Database::saveBook(book);
 	std::string author{"behnam"};
 	int partIndex{0};
 	int commentIndex{0};
 	//	std::string bookName{"Book Name"};
+	book.name = "behnam";
+	// Database::editBookInfo(book);
 
-	//	Database::insertPart(bookPart, author);
-	//	bookPart.id = 1;
+	// Database::insertPart(bookPart, author);
+	bookPart.id = 1;
 
-	//	Database::insertPart(bookPart, author);
+	// Database::insertPart(bookPart, author);
 	Database::Comment comment;
 	comment.content = "hello66";
 	// Database::insertBookComment(comment, author);
@@ -53,13 +68,13 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	//	int partIndex{1};
 
 	// Database::deleteBookPart(bookId, partIndex);
-	Database::deleteBookPartComment(bookId, partIndex, commentIndex);
+	// Database::deleteBookPartComment(bookId, partIndex, commentIndex);
 
 	// Database::insertBookPartComment(comment, bookId, author, partIndex);
-	//	Database::User user;
-	//	user.userName = "behnam";
+	Database::User user;
+	user.userName = "behnam";
 
-	//	//	Database::saveUser(user);
+	// Database::saveUser(user);
 	//	user.email = "behnamsabaghi@gmail.com";
 	//	Database::updateUser(user);
 	//	std::clog << Database::getBooks(author) << std::endl;
@@ -162,6 +177,18 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	//	booksObj.stringify(ss);
 	//	auto str = ss.str();
 	//	responseStream << str;
+
+	//*******************md5
+
+	//	std::string testMd5 = "behnam sabaghi";
+	//	Poco::MD5Engine md5;
+	//	Poco::DigestOutputStream outstr(md5);
+	//	outstr << testMd5;
+	//	outstr.flush(); // to pass everything to the digest engine
+	//	const Poco::DigestEngine::Digest &digest = md5.digest();
+	//	std::string md5string = Poco::DigestEngine::digestToHex(digest);
+	//	std::clog << md5string << std::endl;
+	//*******************md5 end
 
 	responseStream << Database::getBooks(author);
 	//	// array of objects
