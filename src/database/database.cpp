@@ -1,3 +1,4 @@
+// TODO P[2] comment
 #include "database.h"
 #include <Poco/Dynamic/Var.h>
 #include <Poco/JSON/JSON.h>
@@ -15,9 +16,7 @@ void Database::setConnectionName(const std::string &value)
 void Database::connect()
 {
 	std::string connectionString{""};
-	connectionString += hostAddress;
-	connectionString += std::string(":");
-	connectionString += port;
+	connectionString += hostAddress + std::string(":") + port;
 	std::clog << "connected to : " << connectionString << std::endl;
 	g_connectionFactory.reset(new MongoDBConnectionFactory(connectionString));
 	g_connectionPool.reset(new MongoDBConnectionPool(
@@ -43,8 +42,6 @@ void Database::connect()
 	g_db.ensureIndex(*c, "Users", "phoneNumber", uniqeUserPhoneNumber, true);
 	g_db.ensureIndex(*c, "Users", "email", uniqeUserEmail, true);
 	g_db.ensureIndex(*c, "Users", "userNumber", uniqeUserUserNumber, true);
-
-	std::string connectionName = "pocoTestDB", collectionName, indexName;
 }
 
 std::string Database::getHostAddress() { return hostAddress; }
@@ -108,7 +105,6 @@ Database::ResponceType Database::saveBook(Book &inputBook)
 
 		bookObj->add("sharedMode", std::to_string(inputBook.sharedMode));
 		bookObj->add("seensCount", inputBook.seensCount);
-		bookObj->add("likesCount", inputBook.likesCount);
 
 		MongoDB::Array::Ptr likedUsersList(new MongoDB::Array());
 
@@ -126,7 +122,7 @@ Database::ResponceType Database::saveBook(Book &inputBook)
 					inputBook.SharedWith.at(i));
 		}
 
-		bookObj->add("SharedWith", sharedWithList);
+		bookObj->add("sharedWith", sharedWithList);
 
 		MongoDB::Array::Ptr bookCommentsArray(new MongoDB::Array());
 
@@ -352,9 +348,9 @@ Database::ResponceType Database::deleteBookPart(std::string &bookId,
 		MongoDB::Document::Ptr document(new MongoDB::Document());
 		MongoDB::Document::Ptr bookPartObj(new MongoDB::Document());
 		bookPartObj->add("id", partIndex);
-		MongoDB::Document::Ptr testDoc(new MongoDB::Document());
-		testDoc->add("parts", bookPartObj);
-		document->add("$pull", testDoc);
+		MongoDB::Document::Ptr queryPartDoc(new MongoDB::Document());
+		queryPartDoc->add("parts", bookPartObj);
+		document->add("$pull", queryPartDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
 		query->add("id", bookId);
@@ -474,6 +470,100 @@ Database::ResponceType Database::deleteBookPartComment(std::string &bookId,
 
 		MongoDB::ResponseMessage response;
 		c->sendRequest(*deleteCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
+			  << std::endl;
+		return ResponceType::ERROR;
+	}
+}
+
+Database::ResponceType Database::deleteLikedUser(std::string &bookId,
+						 std::string &userName)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+		MongoDB::Document::Ptr queryUserDoc(new MongoDB::Document());
+		queryUserDoc->add("likedUsers", userName);
+		document->add("$pull", queryUserDoc);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		query->add("id", bookId);
+
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+		updates->add(std::to_string(0), update);
+
+		auto updateCmd = g_db.createCommand();
+		updateCmd->selector()
+		.add("update", "Books")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*updateCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
+			  << std::endl;
+		return ResponceType::ERROR;
+	}
+}
+
+Database::ResponceType
+Database::deleteSharedWithUsers(std::string &bookId,
+				std::vector<std::string> &userNames)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+		MongoDB::Document::Ptr queryUserDoc(new MongoDB::Document());
+		MongoDB::Array::Ptr usersArray(new MongoDB::Array());
+
+		for (size_t i = 0; i < userNames.size(); i++) {
+
+			usersArray->add(std::to_string(i), userNames[i]);
+		}
+
+		queryUserDoc->add("sharedWith", usersArray);
+		document->add("$pullAll", queryUserDoc);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		query->add("id", bookId);
+
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+		updates->add(std::to_string(0), update);
+
+		auto updateCmd = g_db.createCommand();
+		updateCmd->selector()
+		.add("update", "Books")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*updateCmd, response);
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
@@ -614,9 +704,9 @@ Database::ResponceType Database::insertPart(BookPart &inputBookPart,
 
 		bookPartObj->add("comments", partCommentsArray);
 
-		MongoDB::Document::Ptr testDoc(new MongoDB::Document());
-		testDoc->add("parts", bookPartObj);
-		document->add("$addToSet", testDoc);
+		MongoDB::Document::Ptr queryPartDoc(new MongoDB::Document());
+		queryPartDoc->add("parts", bookPartObj);
+		document->add("$addToSet", queryPartDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
 		query->add("author", bookName);
@@ -650,7 +740,7 @@ Database::ResponceType Database::insertPart(BookPart &inputBookPart,
 }
 
 Database::ResponceType Database::insertBookComment(Comment &comment,
-						   std::string &bookName)
+						   std::string &bookId)
 {
 	try {
 		auto con = takeConnection();
@@ -660,7 +750,8 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 
 		MongoDB::Document::Ptr bookCommentObj(new MongoDB::Document());
 
-		bookCommentObj->add("id", comment.id);
+		bookCommentObj->add("index", comment.id);
+		bookCommentObj->add("userName", comment.userName);
 
 		MongoDB::Document::Ptr publishDateTime(new MongoDB::Document());
 		publishDateTime->add("day", comment.lastEditDateTime.day);
@@ -676,12 +767,12 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 		bookCommentObj->add("content", comment.content);
 
 		// MongoDB::Array::Ptr partCommentsArray(new MongoDB::Array());
-		MongoDB::Document::Ptr testDoc(new MongoDB::Document());
-		testDoc->add("comments", bookCommentObj);
-		document->add("$addToSet", testDoc);
+		MongoDB::Document::Ptr queryCommentDoc(new MongoDB::Document());
+		queryCommentDoc->add("comments", bookCommentObj);
+		document->add("$addToSet", queryCommentDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("author", bookName);
+		query->add("id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -700,12 +791,12 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			// std::cout << i->toString(2) << std::endl;
+			std::cout << i->toString(2) << std::endl;
 		}
 		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
-		std::cerr << "INSERT " << bookName << " failed: " << e.displayText()
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
 		return ResponceType::ERROR;
 	}
@@ -713,8 +804,7 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 
 Database::ResponceType
 Database::insertBookPartComment(Database::Comment &comment,
-				std::string &bookName, std::string &author,
-				int &partindex)
+				std::string &bookName, int &partindex)
 {
 	try {
 		auto con = takeConnection();
@@ -725,6 +815,7 @@ Database::insertBookPartComment(Database::Comment &comment,
 		MongoDB::Document::Ptr bookCommentObj(new MongoDB::Document());
 
 		bookCommentObj->add("id", comment.id);
+		bookCommentObj->add("userName", comment.userName);
 
 		MongoDB::Document::Ptr publishDateTime(new MongoDB::Document());
 		publishDateTime->add("day", comment.lastEditDateTime.day);
@@ -739,18 +830,17 @@ Database::insertBookPartComment(Database::Comment &comment,
 		bookCommentObj->add("edited", comment.edited);
 		bookCommentObj->add("content", comment.content);
 
-		MongoDB::Document::Ptr testDoc(new MongoDB::Document());
-		testDoc->add("parts." + std::to_string(partindex) + ".comments",
-			 bookCommentObj);
-		document->add("$addToSet", testDoc);
+		MongoDB::Document::Ptr queryCommentDoc(new MongoDB::Document());
+		queryCommentDoc->add("parts." + std::to_string(partindex) +
+					 ".comments",
+				 bookCommentObj);
+		document->add("$addToSet", queryCommentDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
 		MongoDB::Document::Ptr subQuery(new MongoDB::Document());
 		MongoDB::Document::Ptr matchElementQuery(new MongoDB::Document());
 
-		query->add("author", author);
-		query->add("name", bookName);
-		std::clog << query->toString() << std::endl;
+		query->add("id", bookName);
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
 		update->add("u", document);
@@ -774,6 +864,109 @@ Database::insertBookPartComment(Database::Comment &comment,
 	}
 	catch (const Exception &e) {
 		std::cerr << "INSERT " << bookName << " failed: " << e.displayText()
+			  << std::endl;
+		return ResponceType::ERROR;
+	}
+}
+
+Database::ResponceType Database::insertLikedUser(std::string &bookId,
+						 std::string &userName)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+
+		MongoDB::Document::Ptr addToArray(new MongoDB::Document());
+		addToArray->add("likedUsers", userName);
+		document->add("$addToSet", addToArray);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		MongoDB::Document::Ptr subQuery(new MongoDB::Document());
+		MongoDB::Document::Ptr matchElementQuery(new MongoDB::Document());
+
+		query->add("id", bookId);
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+		updates->add(std::to_string(0), update);
+
+		auto deleteCmd = g_db.createCommand();
+		deleteCmd->selector()
+		.add("update", "Books")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*deleteCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
+			  << std::endl;
+		return ResponceType::ERROR;
+	}
+}
+
+Database::ResponceType
+Database::insertSharedWithUsers(std::string &bookId,
+				std::vector<std::string> &userNames)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+
+		MongoDB::Document::Ptr addToArrayDoc(new MongoDB::Document());
+		MongoDB::Array::Ptr addArray(new MongoDB::Array());
+		//{ $addToSet: { tags: { $each: [ "camera", "electronics",
+		//"accessories" ] } } }
+		MongoDB::Document::Ptr eachDoc(new MongoDB::Document());
+
+		for (size_t i = 0; i < userNames.size(); i++) {
+
+			addArray->add(std::to_string(i), userNames[i]);
+		}
+		eachDoc->add("$each", addArray);
+		addToArrayDoc->add("sharedWith", eachDoc);
+		document->add("$addToSet", addToArrayDoc);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		MongoDB::Document::Ptr subQuery(new MongoDB::Document());
+		MongoDB::Document::Ptr matchElementQuery(new MongoDB::Document());
+
+		query->add("id", bookId);
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+		updates->add(std::to_string(0), update);
+
+		auto deleteCmd = g_db.createCommand();
+		deleteCmd->selector()
+		.add("update", "Books")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*deleteCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
 		return ResponceType::ERROR;
 	}
@@ -989,9 +1182,11 @@ Database::editBookParts(std::vector<Database::BookPart> &bookParts,
 
 			bookPartObj->add("lastEditDateTime", lastEditDateTime);
 
-			MongoDB::Document::Ptr testDoc(new MongoDB::Document());
-			testDoc->add("parts." + std::to_string(i), bookPartObj);
-			document->add("$set", testDoc);
+			MongoDB::Document::Ptr updateValuesDoc(
+			new MongoDB::Document());
+			updateValuesDoc->add("parts." + std::to_string(i),
+					 bookPartObj);
+			document->add("$set", updateValuesDoc);
 
 			MongoDB::Document::Ptr query(new MongoDB::Document());
 			query->add("id", bookId);
@@ -1003,6 +1198,135 @@ Database::editBookParts(std::vector<Database::BookPart> &bookParts,
 			updates->add(std::to_string(i), update);
 			i++;
 		}
+		auto updateCmd = g_db.createCommand();
+		updateCmd->selector()
+		.add("update", "Books")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*updateCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
+			  << std::endl;
+		return ResponceType::ERROR;
+	}
+}
+
+Database::ResponceType Database::editBookComment(Database::Comment &comment,
+						 std::string &bookId)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+
+		MongoDB::Document::Ptr bookCommentObj(new MongoDB::Document());
+
+		bookCommentObj->add("content", comment.content);
+		bookCommentObj->add("edited", true);
+
+		MongoDB::Document::Ptr lastEditDateTime(new MongoDB::Document());
+		lastEditDateTime->add("day", comment.lastEditDateTime.day);
+		lastEditDateTime->add("month", comment.lastEditDateTime.month);
+		lastEditDateTime->add("year", comment.lastEditDateTime.year);
+		lastEditDateTime->add("hour", comment.lastEditDateTime.hour);
+		lastEditDateTime->add("minute", comment.lastEditDateTime.minute);
+		lastEditDateTime->add("second", comment.lastEditDateTime.second);
+
+		bookCommentObj->add("lastEditDateTime", lastEditDateTime);
+
+		MongoDB::Document::Ptr updateValueDoc(new MongoDB::Document());
+		updateValueDoc->add("comments." + std::to_string(comment.id),
+				bookCommentObj);
+		document->add("$set", updateValueDoc);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		query->add("id", bookId);
+
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		updates->add(std::to_string(0), update);
+
+		auto updateCmd = g_db.createCommand();
+		updateCmd->selector()
+		.add("update", "Books")
+		.add("updates", updates);
+
+		MongoDB::ResponseMessage response;
+		c->sendRequest(*updateCmd, response);
+		auto doc = *(response.documents()[0]);
+		verifyResponse(doc);
+		for (auto i : response.documents()) {
+			std::cout << i->toString(2) << std::endl;
+		}
+		return ResponceType::OK;
+	}
+	catch (const Exception &e) {
+		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
+			  << std::endl;
+		return ResponceType::ERROR;
+	}
+}
+
+Database::ResponceType Database::editBookPartComment(Database::Comment &comment,
+							 std::string &bookId,
+							 int &partindex)
+{
+	try {
+		auto con = takeConnection();
+		auto c = static_cast<MongoDB::Connection::Ptr>(con);
+
+		MongoDB::Array::Ptr updates(new MongoDB::Array());
+
+		MongoDB::Document::Ptr document(new MongoDB::Document());
+
+		MongoDB::Document::Ptr bookPartCommentObj(new MongoDB::Document());
+
+		bookPartCommentObj->add("content", comment.content);
+		bookPartCommentObj->add("edited", true);
+		bookPartCommentObj->add("userName", comment.userName);
+		bookPartCommentObj->add("id", comment.id);
+
+		MongoDB::Document::Ptr lastEditDateTime(new MongoDB::Document());
+		lastEditDateTime->add("day", comment.lastEditDateTime.day);
+		lastEditDateTime->add("month", comment.lastEditDateTime.month);
+		lastEditDateTime->add("year", comment.lastEditDateTime.year);
+		lastEditDateTime->add("hour", comment.lastEditDateTime.hour);
+		lastEditDateTime->add("minute", comment.lastEditDateTime.minute);
+		lastEditDateTime->add("second", comment.lastEditDateTime.second);
+
+		bookPartCommentObj->add("lastEditDateTime", lastEditDateTime);
+
+		MongoDB::Document::Ptr updateValueDoc(new MongoDB::Document());
+		updateValueDoc->add("parts." + std::to_string(partindex) +
+					".comments." + std::to_string(partindex),
+				bookPartCommentObj);
+
+		std::clog << updateValueDoc->toString() << std::endl;
+
+		document->add("$set", updateValueDoc);
+
+		MongoDB::Document::Ptr query(new MongoDB::Document());
+		query->add("id", bookId);
+
+		MongoDB::Document::Ptr update(new MongoDB::Document());
+		update->add("q", query).add("limit", 1);
+		update->add("u", document);
+
+		updates->add(std::to_string(0), update);
+
 		auto updateCmd = g_db.createCommand();
 		updateCmd->selector()
 		.add("update", "Books")

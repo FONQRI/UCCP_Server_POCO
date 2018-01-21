@@ -1,3 +1,5 @@
+// NOTE temp files shuold delete
+
 //#ifndef DATABASE_H
 //#define DATABASE_H
 
@@ -63,7 +65,7 @@
 // void connect()
 //{
 //	g_connectionFactory.reset(new
-//MongoDBConnectionFactory("localhost:27017"));
+// MongoDBConnectionFactory("localhost:27017"));
 //	g_connectionPool.reset(new MongoDBConnectionPool(
 //	*g_connectionFactory, poolCapacity, poolPeakCapacity));
 //}
@@ -136,7 +138,7 @@
 //		// insert, update, delete commands
 //		if (r.exists("writeErrors")) {
 //			const auto ev =
-//r.get<MongoDB::Array::Ptr>("writeErrors");
+// r.get<MongoDB::Array::Ptr>("writeErrors");
 //			for (size_t i = 0; i < ev->size(); ++i) {
 //				auto err = ev->get<MongoDB::Document::Ptr>(i);
 //				const auto index = extractInt64(*err, "index");
@@ -168,7 +170,7 @@
 
 //	if (ostr.tellp() > 0) {
 //		std::cout << "Error response from server: " <<
-//response.toString(2)
+// response.toString(2)
 //			  << std::endl;
 //		throw Exception("MongoDB: " + ostr.str());
 //	}

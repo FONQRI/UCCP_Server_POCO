@@ -49,13 +49,22 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	bookPart.name = "anghezi";
 	// Database::deleteBook(bookId);
 	// Database::saveBookTest(book);
-	Database::saveBook(book);
+	// Database::saveBook(book);
 	std::string author{"behnam"};
+	std::string author2{"ali"};
 	int partIndex{0};
 	int commentIndex{0};
 	//	std::string bookName{"Book Name"};
 	book.name = "behnam";
 	// Database::editBookInfo(book);
+
+	// Database::deleteLikedUser(book.id, author);
+	std::vector<std::string> users;
+	users.push_back(author);
+	users.push_back(author2);
+
+	// Database::insertSharedWithUsers(book.id, users);
+	// Database::deleteSharedWithUsers(book.id, users);
 
 	// Database::insertPart(bookPart, author);
 	bookPart.id = 1;
@@ -63,7 +72,14 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	// Database::insertPart(bookPart, author);
 	Database::Comment comment;
 	comment.content = "hello66";
-	// Database::insertBookComment(comment, author);
+	comment.id = 56;
+	// Database::insertBookComment(comment, book.id);
+	comment.content = "hello";
+
+	// Database::insertBookPartComment(comment, book.id, partIndex);
+	comment.content = "hello666";
+
+	Database::editBookPartComment(comment, book.id, partIndex);
 	// Database::deleteBookComment(bookId, partIndex, commentIndex);
 	//	int partIndex{1};
 

@@ -1,3 +1,5 @@
+// TODO P[2] comment
+// TODO P[2] handle database returned errors
 #ifndef DATABASE_H
 #define DATABASE_H
 
@@ -39,6 +41,7 @@ class Database {
 
 	struct Comment {
 	int id{0};
+	std::string userName{""};
 	bool edited{false};
 	DateTime lastEditDateTime;
 	std::string content{""};
@@ -87,7 +90,68 @@ class Database {
 	std::vector<std::string> favoriteTags;
 	DateTime berthday;
 	};
+
 	static void connect();
+
+	// saves
+	static ResponceType saveBook(Book &inputBook);
+	static ResponceType saveUser(User &user);
+
+	// gets
+	static std::string getBooks(std::string &author);
+	static std::string getUser(std::string &userName);
+
+	// edits
+	// TODO P[3] add edit for comments
+	static ResponceType editBookInfo(Book &inputBook);
+	static ResponceType editBookParts(std::vector<BookPart> &bookParts,
+					  std::string &bookId);
+
+	static ResponceType editBookComment(Comment &comment, std::string &bookId);
+
+	static ResponceType
+	editBookPartComment(Comment &comment, std::string &bookId, int &partindex);
+
+	// updates
+	static Database::ResponceType updateUser(User &user);
+
+	// dletes
+	static ResponceType deleteBook(std::string &bookId);
+	static ResponceType deleteBookPart(std::string &bookId, int &partIndex);
+	static ResponceType deleteBookComment(std::string &bookId,
+					  int &commentIndex);
+	static ResponceType deleteBookPartComment(std::string &bookId,
+						  int &partIndex,
+						  int &commentIndex);
+
+	static Database::ResponceType deleteLikedUser(std::string &bookId,
+						  std::string &userName);
+
+	static Database::ResponceType
+	deleteSharedWithUsers(std::string &bookId,
+			  std::vector<std::string> &userNames);
+
+	// inserts
+	static Database::ResponceType insertPart(BookPart &inputBookPart,
+						 std::string &bookName);
+
+	static Database::ResponceType insertBookComment(Comment &comment,
+							std::string &bookId);
+
+	static Database::ResponceType insertBookPartComment(Comment &comment,
+							std::string &bookName,
+							int &partindex);
+
+	static Database::ResponceType insertLikedUser(std::string &bookId,
+						  std::string &userName);
+
+	static Database::ResponceType
+	insertSharedWithUsers(std::string &bookId,
+			  std::vector<std::string> &userNames);
+
+	// getter and setters
+	static std::string getConnectionName();
+	static void setConnectionName(const std::string &value);
 
 	static std::string getHostAddress();
 	static void setHostAddress(const std::string &value);
@@ -97,39 +161,6 @@ class Database {
 
 	static size_t getPoolCapacity();
 	static void setPoolCapacity(const size_t &value);
-
-	static ResponceType saveBook(Book &inputBook);
-	static ResponceType saveUser(User &user);
-
-	static std::string getBooks(std::string &author);
-	static std::string getUser(std::string &userName);
-
-	static ResponceType editBookInfo(Book &inputBook);
-	static ResponceType editBookParts(std::vector<BookPart> &bookParts,
-					  std::string &bookId);
-	static Database::ResponceType updateUser(User &user);
-
-	static ResponceType deleteBook(std::string &bookId);
-	static ResponceType deleteBookPart(std::string &bookId, int &partIndex);
-	static ResponceType deleteBookComment(std::string &bookId,
-					  int &commentIndex);
-	static ResponceType deleteBookPartComment(std::string &bookId,
-						  int &partIndex,
-						  int &commentIndex);
-
-	static Database::ResponceType insertPart(BookPart &inputBookPart,
-						 std::string &bookName);
-
-	static Database::ResponceType insertBookComment(Comment &comment,
-							std::string &bookName);
-
-	static Database::ResponceType insertBookPartComment(Comment &comment,
-							std::string &bookName,
-							std::string &author,
-							int &partindex);
-
-	static std::string getConnectionName();
-	static void setConnectionName(const std::string &value);
 
   private:
 	Database();
