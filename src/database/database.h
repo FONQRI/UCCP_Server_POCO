@@ -1,4 +1,12 @@
-// TODO P[2] comment
+/**
+  database.h
+  purpose : manage database connections . MongoDB database client Poco library
+
+  @author FONQRI
+  @version 1.0 21/1/2018
+
+  */
+
 // TODO P[2] handle database returned errors
 #ifndef DATABASE_H
 #define DATABASE_H
@@ -23,13 +31,22 @@
 
 using namespace Poco;
 
+/**
+ * Database
+ * @brief The Database class manage mongodb database and contain add database
+ * functions .
+ * all functions are static and you can't create object from this class .
+ *
+ */
 class Database {
   public:
-	enum BookType { NOVEL = 0, STORY };
+	// enums
 	enum ResponceType { OK = 0, ERROR };
-
 	enum SharedMood { PRIVATE = 0, PUBLIC };
 
+	/**
+	 * @brief The DateTime struct contain Date and time needed variables
+	 */
 	struct DateTime {
 	int day{0};
 	int month{0};
@@ -39,14 +56,20 @@ class Database {
 	int second{0};
 	};
 
+	/**
+	 * @brief The Comment struct
+	 */
 	struct Comment {
 	int id{0};
-	std::string userName{""};
 	bool edited{false};
+	std::string userName{""};
 	DateTime lastEditDateTime;
 	std::string content{""};
 	};
 
+	/**
+	 * @brief The BookPart struct
+	 */
 	struct BookPart {
 	int id{0};
 	int version{0};
@@ -56,10 +79,12 @@ class Database {
 	std::string name{""};
 	DateTime publishDateTime;
 	DateTime lastEditDateTime;
-
 	std::vector<Comment> comments;
 	};
 
+	/**
+	 * @brief The Book struct
+	 */
 	struct Book {
 	std::string id{"0"};
 	int version{0};
@@ -68,7 +93,7 @@ class Database {
 	std::string shabakNumber{""};
 	std::string author{""};
 	std::string name{""};
-	BookType type;
+	std::string type;
 	DateTime publishDateTime;
 	DateTime lastEditDateTime;
 	SharedMood sharedMode;
@@ -79,6 +104,9 @@ class Database {
 	std::vector<Comment> comments;
 	};
 
+	/**
+	 * @brief The User struct
+	 */
 	struct User {
 	long studyDuration{000000000000};
 	std::string userName{""};
@@ -91,78 +119,245 @@ class Database {
 	DateTime berthday;
 	};
 
+	/**
+	 * @brief connect should call first to connect to database and can use it
+	 */
 	static void connect();
 
-	// saves
+	// save functions
+	/**
+	 * @brief saveBook : save book in database
+	 * @param inputBook : an struct of Database::Book
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType saveBook(Book &inputBook);
+
+	/**
+	 * @brief saveUser : save book in database
+	 * @param user : uses Database::User struct
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType saveUser(User &user);
 
-	// gets
+	// get functions
+	/**
+	 * @brief getBooks : gets all books of an author
+	 * @param author : author userName
+	 * @return json that contains books
+	 */
 	static std::string getBooks(std::string &author);
+
+	/**
+	 * @brief getUser : gets user json
+	 * @param userName : userName of user
+	 * @return user info json
+	 */
 	static std::string getUser(std::string &userName);
 
-	// edits
-	// TODO P[3] add edit for comments
+	// edits functions
+	/**
+	 * @brief editBookInfo : edits book info
+	 * @param inputBook : Database::Book with new info
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType editBookInfo(Book &inputBook);
+
+	/**
+	 * @brief editBookParts : edits book parts that given
+	 * @param bookParts : a std::vector of new or changed book parts
+	 * @param bookId : book id that should be changed
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType editBookParts(std::vector<BookPart> &bookParts,
 					  std::string &bookId);
 
+	/**
+	 * @brief editBookComment : edits comment that is on a book
+	 * @param comment : Database::Comment struct of new comment
+	 * @param bookId : book id that should be changed
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType editBookComment(Comment &comment, std::string &bookId);
 
+	/**
+	 * @brief editBookPartComment : edits comment that is on a book part
+	 * @param comment : Database::Comment struct of new comment
+	 * @param bookId : book id that should be changed
+	 * @param partindex : index of part that comment is in it
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType
 	editBookPartComment(Comment &comment, std::string &bookId, int &partindex);
 
 	// updates
-	static Database::ResponceType updateUser(User &user);
+	/**
+	 * @brief updateUser : update an existing user
+	 * @param user : Database::User struct by new info
+	 * @return responce code uses Database::ResponceType
+	 */
+	static ResponceType updateUser(User &user);
 
 	// dletes
+	/**
+	 * @brief deleteBook : delete an existing book
+	 * @param bookId : book id that should be deleted
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType deleteBook(std::string &bookId);
+
+	/**
+	 * @brief deleteBookPart : delete a part of existing book
+	 * @param bookId : book id
+	 * @param partIndex : part index that should be deleted
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType deleteBookPart(std::string &bookId, int &partIndex);
+
+	/**
+	 * @brief deleteBookComment : delete a comment from book comments
+	 * @param bookId : book id
+	 * @param commentIndex : index of comment that should be deleted from book
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType deleteBookComment(std::string &bookId,
 					  int &commentIndex);
+
+	/**
+	 * @brief deleteBookPartComment : delete a comment from book part comments
+	 * @param bookId : book id
+	 * @param partIndex : part index that contains comment
+	 * @param commentIndex : index of comment that should be deleted from book
+	 * part
+	 * @return responce code uses Database::ResponceType
+	 */
 	static ResponceType deleteBookPartComment(std::string &bookId,
 						  int &partIndex,
 						  int &commentIndex);
 
+	/**
+	 * @brief deleteLikedUser : delete a user from users that liked book
+	 * @param bookId : book id
+	 * @param userName : user name that unliked book
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType deleteLikedUser(std::string &bookId,
 						  std::string &userName);
 
+	/**
+	 * @brief deleteSharedWithUsers : delete users that deleted from shared with
+	 * users of this book
+	 * @param bookId : book id
+	 * @param userNames : std::vector of usernames
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType
 	deleteSharedWithUsers(std::string &bookId,
 			  std::vector<std::string> &userNames);
 
 	// inserts
+	/**
+	 * @brief insertPart : inserts a part to book
+	 * @param inputBookPart : Database::BookPart of new part
+	 * @param bookId : book id
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType insertPart(BookPart &inputBookPart,
-						 std::string &bookName);
+						 std::string &bookId);
 
+	// TODO P[1] addd insertParts function
+	/**
+	 * @brief insertBookComment : inserts a comment to book
+	 * @param comment : Database::Comment of comment
+	 * @param bookId : book id
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType insertBookComment(Comment &comment,
 							std::string &bookId);
 
+	/**
+	 * @brief insertBookPartComment :  inserts a comment to book part
+	 * @param comment :  Database::Comment of comment
+	 * @param bookId : book id
+	 * @param partindex : index of part
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType insertBookPartComment(Comment &comment,
-							std::string &bookName,
+							std::string &bookId,
 							int &partindex);
 
+	/**
+	 * @brief insertLikedUser : add a user when user likes book
+	 * @param bookId : book id
+	 * @param userName : username of an existing user
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType insertLikedUser(std::string &bookId,
 						  std::string &userName);
 
+	/**
+	 * @brief insertSharedWithUsers : inserts users that private book is shared
+	 * with theme
+	 * @param bookId : book id
+	 * @param userNames : username
+	 * @return responce code uses Database::ResponceType
+	 */
 	static Database::ResponceType
 	insertSharedWithUsers(std::string &bookId,
 			  std::vector<std::string> &userNames);
 
 	// getter and setters
+	/**
+	 * @brief getConnectionName : gets connection name
+	 * @return connection name
+	 */
 	static std::string getConnectionName();
+
+	/**
+	 * @brief setConnectionName : set connection name it has a defult value
+	 * @param value : new connection name
+	 */
 	static void setConnectionName(const std::string &value);
 
+	/**
+	 * @brief getHostAddress : gets host address
+	 * @return host address
+	 */
 	static std::string getHostAddress();
+
+	/**
+	 * @brief setHostAddress : sets host address
+	 * @param value : new host address
+	 */
 	static void setHostAddress(const std::string &value);
 
+	/**
+	 * @brief getPort : gets port
+	 * @return port number
+	 */
 	static std::string getPort();
+
+	/**
+	 * @brief setPort : sets port
+	 * @param value : new port value
+	 */
 	static void setPort(const std::string &value);
 
+	/**
+	 * @brief getPoolCapacity : gets pool capacity
+	 * @return pool capcity
+	 */
 	static size_t getPoolCapacity();
+
+	/**
+	 * @brief setPoolCapacity : sets pool capacity
+	 * @param value : new pool capacity
+	 */
 	static void setPoolCapacity(const size_t &value);
 
   private:
+	/**
+	 * @brief Database : private constructor
+	 */
 	Database();
 
 	// typedefs
@@ -183,17 +378,32 @@ class Database {
 	static size_t poolPeakCapacity;
 	static std::string hostAddress;
 	static std::string port;
-	static std::vector<std::thread> threadList;
 	static MongoDBConnectionFactoryPtr g_connectionFactory;
 	static MongoDBConnectionPoolPtr g_connectionPool;
 	static Poco::MongoDB::Database g_db;
 	static std::string connectionName;
 
 	// functions
-	static void run();
+	/**
+	 * @brief takeConnection : takes a connection to work with database
+	 * @return Poco::MongoDB::PooledConnection
+	 */
 	static Poco::MongoDB::PooledConnection takeConnection();
+
+	/**
+	 * @brief extractInt64
+	 * @param d
+	 * @param name
+	 * @return
+	 */
 	static Int64 extractInt64(const MongoDB::Document &d,
 				  const std::string &name);
+
+	/**
+	 * @brief verifyResponse
+	 * @param response
+	 * @param expectOK
+	 */
 	static void verifyResponse(const MongoDB::Document &response,
 				   bool expectOK = true);
 };
