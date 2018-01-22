@@ -8,6 +8,8 @@
   */
 
 // TODO P[2] handle database returned errors
+// TODO P[1] add time to liked user for every like
+
 #ifndef DATABASE_H
 #define DATABASE_H
 
@@ -120,7 +122,9 @@ class Database {
 	};
 
 	/**
-	 * @brief connect should call first to connect to database and can use it
+	 * @brief connect need to be called afted setting database parameters by
+	 * defullt it will connect to localhost:27017 and create connection by
+	 * pocoTestDB name
 	 */
 	static void connect();
 

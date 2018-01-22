@@ -97,7 +97,6 @@ target_link_libraries(Database
 
 target_link_libraries(TemplateEngine
   Database
-
 )
 
 

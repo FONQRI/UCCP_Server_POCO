@@ -1,3 +1,11 @@
+/**
+  httpserver.h
+  purpose : This class is base of http server
+
+  @author FONQRI
+  @version 1.0 22/1/2018
+
+  */
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 

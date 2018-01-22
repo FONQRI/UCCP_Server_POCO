@@ -1,18 +1,9 @@
-/**
-  database.cpp
-  purpose : manage database connections . MongoDB database client Poco library
-
-  @author FONQRI
-  @version 1.0 21/1/2018
-
-  */
 #include "database.h"
 #include <Poco/Dynamic/Var.h>
 #include <Poco/JSON/JSON.h>
 #include <Poco/JSON/Parser.h>
 
-
-
+// connect need to be called first
 void Database::connect()
 {
 	std::string connectionString{""};
@@ -43,9 +34,6 @@ void Database::connect()
 	g_db.ensureIndex(*c, "Users", "email", uniqeUserEmail, true);
 	g_db.ensureIndex(*c, "Users", "userNumber", uniqeUserUserNumber, true);
 }
-
-
-
 
 Database::ResponceType Database::saveBook(Book &inputBook)
 {
@@ -291,7 +279,6 @@ Database::ResponceType Database::saveBook(Book &inputBook)
 	}
 }
 
-
 Database::ResponceType Database::saveUser(Database::User &user)
 {
 	try {
@@ -349,7 +336,6 @@ Database::ResponceType Database::saveUser(Database::User &user)
 	}
 }
 
-
 std::string Database::getBooks(std::string &author)
 {
 	try {
@@ -384,7 +370,6 @@ std::string Database::getBooks(std::string &author)
 	return "";
 }
 
-
 std::string Database::getUser(std::string &userName)
 {
 	try {
@@ -414,8 +399,6 @@ std::string Database::getUser(std::string &userName)
 	}
 	return "";
 }
-
-
 
 Database::ResponceType Database::editBookInfo(Database::Book &inputBook)
 {
@@ -495,7 +478,6 @@ Database::ResponceType Database::editBookInfo(Database::Book &inputBook)
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType
 Database::editBookParts(std::vector<Database::BookPart> &bookParts,
@@ -578,7 +560,6 @@ Database::editBookParts(std::vector<Database::BookPart> &bookParts,
 	}
 }
 
-
 Database::ResponceType Database::editBookComment(Database::Comment &comment,
 						 std::string &bookId)
 {
@@ -639,7 +620,6 @@ Database::ResponceType Database::editBookComment(Database::Comment &comment,
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType Database::editBookPartComment(Database::Comment &comment,
 							 std::string &bookId,
@@ -709,7 +689,6 @@ Database::ResponceType Database::editBookPartComment(Database::Comment &comment,
 	}
 }
 
-
 Database::ResponceType Database::updateUser(Database::User &user)
 {
 	try {
@@ -774,7 +753,6 @@ Database::ResponceType Database::updateUser(Database::User &user)
 	}
 }
 
-
 Database::ResponceType Database::deleteBook(std::string &bookId)
 {
 
@@ -812,7 +790,6 @@ Database::ResponceType Database::deleteBook(std::string &bookId)
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType Database::deleteBookPart(std::string &bookId,
 						int &partIndex)
@@ -858,7 +835,6 @@ Database::ResponceType Database::deleteBookPart(std::string &bookId,
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType Database::deleteBookComment(std::string &bookId,
 
@@ -961,7 +937,6 @@ Database::ResponceType Database::deleteBookPartComment(std::string &bookId,
 	}
 }
 
-
 Database::ResponceType Database::deleteLikedUser(std::string &bookId,
 						 std::string &userName)
 {
@@ -1004,7 +979,6 @@ Database::ResponceType Database::deleteLikedUser(std::string &bookId,
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType
 Database::deleteSharedWithUsers(std::string &bookId,
@@ -1056,7 +1030,6 @@ Database::deleteSharedWithUsers(std::string &bookId,
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType Database::insertPart(BookPart &inputBookPart,
 						std::string &bookId)
@@ -1185,8 +1158,6 @@ Database::ResponceType Database::insertPart(BookPart &inputBookPart,
 	}
 }
 
-
-
 Database::ResponceType Database::insertBookComment(Comment &comment,
 						   std::string &bookId)
 {
@@ -1249,8 +1220,6 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 		return ResponceType::ERROR;
 	}
 }
-
-
 
 Database::ResponceType
 Database::insertBookPartComment(Database::Comment &comment, std::string &bookId,
@@ -1318,7 +1287,6 @@ Database::insertBookPartComment(Database::Comment &comment, std::string &bookId,
 		return ResponceType::ERROR;
 	}
 }
-
 
 Database::ResponceType Database::insertLikedUser(std::string &bookId,
 						 std::string &userName)
@@ -1423,15 +1391,12 @@ Database::insertSharedWithUsers(std::string &bookId,
 	}
 }
 
-
 std::string Database::getConnectionName() { return connectionName; }
 
 void Database::setConnectionName(const std::string &value)
 {
 	connectionName = value;
 }
-
-
 
 std::string Database::getHostAddress() { return hostAddress; }
 
@@ -1445,10 +1410,7 @@ size_t Database::getPoolCapacity() { return poolCapacity; }
 
 void Database::setPoolCapacity(const size_t &value) { poolCapacity = value; }
 
-
 Database::Database() {}
-
-
 
 Poco::MongoDB::PooledConnection Database::takeConnection()
 {
