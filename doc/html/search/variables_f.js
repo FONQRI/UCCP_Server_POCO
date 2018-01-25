@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['username',['userName',['../struct_database_1_1_comment.html#a04657f3b3d79a7ab9e388cc3471d3b4a',1,'Database::Comment::userName()'],['../struct_database_1_1_user.html#a3090e21dde316fab7a3fa142329bc071',1,'Database::User::userName()']]]
+  ['tags',['tags',['../struct_database_1_1_book.html#aa86a4a62647c2310694922282b34ec9a',1,'Database::Book']]],
+  ['type',['type',['../struct_database_1_1_book.html#a605fd49624adecb6466766d638dc733f',1,'Database::Book']]]
 ];

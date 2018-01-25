@@ -37,10 +37,17 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 {
 
 	// NOTE START workaround testing database only for test insertBooks
-	Database::Book book;
-	book.author = "behnam";
-	book.id = "behnamanghezi5";
-	book.name = "test";
+	std::vector<std::shared_ptr<Database::Book>> books;
+	books.push_back(std::make_shared<Database::Book>());
+	books.push_back(std::make_shared<Database::Book>());
+
+	books.at(0)->author = "behnam";
+	books.at(0)->id = "behnamanghezi5";
+	books.at(0)->name = "test";
+
+	books.at(1)->author = "behnam2";
+	books.at(1)->id = "behnamanghezi54";
+	books.at(1)->name = "test1";
 
 	std::vector<Database::BookPart> partVector;
 	for (int i = 0; i < 3; i++) {
@@ -55,18 +62,21 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	Database::BookPart bookPart;
 	bookPart.id = 0;
 	bookPart.name = "anghezi";
+	books[0]->parts.push_back(bookPart);
+	// Database::saveBooks(books);
+
 	// Database::deleteBook(bookId);
 	// Database::saveBookTest(book);
-	// Database::saveBook(book);
 	std::string author{"behnam"};
 	std::string author2{"ali"};
 	int partIndex{0};
 	int commentIndex{0};
 	//	std::string bookName{"Book Name"};
-	book.name = "behnam";
-	// Database::editBookInfo(book);
+	books[0]->name = "c++";
+	// Database::editBookInfo(books[0]);
 
-	// Database::deleteLikedUser(book.id, author);
+	std::string likeId{"add6f3d6d9e475e7883c7388b7a69be8"};
+
 	std::vector<std::string> users;
 	users.push_back(author);
 	users.push_back(author2);
@@ -84,10 +94,15 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	// Database::insertBookComment(comment, book.id);
 	comment.content = "hello";
 
-	// Database::insertBookPartComment(comment, book.id, partIndex);
-	comment.content = "hello666";
+	books[0]->id = "322f7a330e970c67b1c3b1cc481f8f69";
+	// Database::insertBookPartComment(comment, books[0]->id, partIndex);
+	comment.content = "no i'm not";
 
-	Database::editBookPartComment(comment, book.id, partIndex);
+	// Database::insertLikedUser(books[0]->id, author);
+	Database::deleteLikedUser(books[0]->id, likeId);
+
+	// Database::editBookPartComment(comment, books[0]->id, partIndex);
+
 	// Database::deleteBookComment(bookId, partIndex, commentIndex);
 	//	int partIndex{1};
 
@@ -96,7 +111,7 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 
 	// Database::insertBookPartComment(comment, bookId, author, partIndex);
 	Database::User user;
-	user.userName = "behnam";
+	user.username = "behnam";
 
 	// Database::saveUser(user);
 	//	user.email = "behnamsabaghi@gmail.com";

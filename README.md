@@ -22,7 +22,7 @@ After running you can use [API Documentation](APIs.md) to develope your client a
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
+If you want to test performance you will need to comment all std::clogs  , because program will crash if you don't  comment them.This std::clog are temprary for now i will develope a good log system instade of using std::clog soon .
 
 ## Deployment
 

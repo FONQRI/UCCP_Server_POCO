@@ -62,18 +62,19 @@ class Database {
 	 * @brief The Comment struct
 	 */
 	struct Comment {
-	int id{0};
+	std::string id{0};
 	bool edited{false};
-	std::string userName{""};
+	std::string username{""};
 	DateTime lastEditDateTime;
 	std::string content{""};
+	std::string repliedTo{""};
 	};
 
 	/**
 	 * @brief The BookPart struct
 	 */
 	struct BookPart {
-	int id{0};
+	std::string id{0};
 	int version{0};
 	int seensCount{0};
 	int likesCount{0};
@@ -111,7 +112,8 @@ class Database {
 	 */
 	struct User {
 	long studyDuration{000000000000};
-	std::string userName{""};
+	std::string id{""};
+	std::string username{""};
 	std::string name{""};
 	std::string family{""};
 	std::string sex{""};
@@ -130,11 +132,12 @@ class Database {
 
 	// save functions
 	/**
-	 * @brief saveBook : save book in database
+	 * @brief saveBooks : save books in database
 	 * @param inputBook : an struct of Database::Book
 	 * @return responce code uses Database::ResponceType
 	 */
-	static ResponceType saveBook(Book &inputBook);
+	static ResponceType
+	saveBooks(std::vector<std::shared_ptr<Book>> &inputBooks);
 
 	/**
 	 * @brief saveUser : save book in database
@@ -146,17 +149,17 @@ class Database {
 	// get functions
 	/**
 	 * @brief getBooks : gets all books of an author
-	 * @param author : author userName
+	 * @param author : author username
 	 * @return json that contains books
 	 */
 	static std::string getBooks(std::string &author);
 
 	/**
 	 * @brief getUser : gets user json
-	 * @param userName : userName of user
+	 * @param username : username of user
 	 * @return user info json
 	 */
-	static std::string getUser(std::string &userName);
+	static std::string getUser(std::string &username);
 
 	// edits functions
 	/**
@@ -164,7 +167,7 @@ class Database {
 	 * @param inputBook : Database::Book with new info
 	 * @return responce code uses Database::ResponceType
 	 */
-	static ResponceType editBookInfo(Book &inputBook);
+	static ResponceType editBookInfo(std::shared_ptr<Book> &inputBook);
 
 	/**
 	 * @brief editBookParts : edits book parts that given
@@ -241,22 +244,22 @@ class Database {
 	/**
 	 * @brief deleteLikedUser : delete a user from users that liked book
 	 * @param bookId : book id
-	 * @param userName : user name that unliked book
+	 * @param username : user name that unliked book
 	 * @return responce code uses Database::ResponceType
 	 */
 	static Database::ResponceType deleteLikedUser(std::string &bookId,
-						  std::string &userName);
+						  std::string &likeId);
 
 	/**
 	 * @brief deleteSharedWithUsers : delete users that deleted from shared with
 	 * users of this book
 	 * @param bookId : book id
-	 * @param userNames : std::vector of usernames
+	 * @param usernames : std::vector of usernames
 	 * @return responce code uses Database::ResponceType
 	 */
 	static Database::ResponceType
 	deleteSharedWithUsers(std::string &bookId,
-			  std::vector<std::string> &userNames);
+			  std::vector<std::string> &usernames);
 
 	// inserts
 	/**
@@ -292,22 +295,22 @@ class Database {
 	/**
 	 * @brief insertLikedUser : add a user when user likes book
 	 * @param bookId : book id
-	 * @param userName : username of an existing user
+	 * @param username : username of an existing user
 	 * @return responce code uses Database::ResponceType
 	 */
 	static Database::ResponceType insertLikedUser(std::string &bookId,
-						  std::string &userName);
+						  std::string &username);
 
 	/**
 	 * @brief insertSharedWithUsers : inserts users that private book is shared
 	 * with theme
 	 * @param bookId : book id
-	 * @param userNames : username
+	 * @param usernames : username
 	 * @return responce code uses Database::ResponceType
 	 */
 	static Database::ResponceType
 	insertSharedWithUsers(std::string &bookId,
-			  std::vector<std::string> &userNames);
+			  std::vector<std::string> &usernames);
 
 	// getter and setters
 	/**
@@ -410,6 +413,8 @@ class Database {
 	 */
 	static void verifyResponse(const MongoDB::Document &response,
 				   bool expectOK = true);
+
+	static std::shared_ptr<DateTime> getDateTime();
 };
 
 #endif // DATABASE_H

@@ -44,7 +44,7 @@ PROJECT_NUMBER         = 0.0.0
 # for a project that appears at the top of each page and should give viewer a
 # quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = This is a server application to prepare a writing platform APIs for clients and also a website to be used as web client of this project .
+PROJECT_BRIEF          = "This is a server application to prepare a writing platform APIs for clients and also a website to be used as web client of this project ."
 
 # With the PROJECT_LOGO tag one can specify a logo or an icon that is included
 # in the documentation. The maximum height of the logo should not exceed 55

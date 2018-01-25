@@ -1,7 +1,7 @@
 var searchData=
 [
   ['safeexit',['SafeExit',['../class_http_server.html#a53bb2edf2b0a799493062c69cd388c9b',1,'HttpServer']]],
-  ['savebook',['saveBook',['../class_database.html#a138d69432bbd63d3c63cadab7950c80c',1,'Database']]],
+  ['savebooks',['saveBooks',['../class_database.html#a1a88e1f95ba3da6e087bd25fe91a35b8',1,'Database']]],
   ['saveuser',['saveUser',['../class_database.html#ac5865a5067640821b279b40c3142322c',1,'Database']]],
   ['second',['second',['../struct_database_1_1_date_time.html#ad74e4815b10ba65d6200a9b1d4c81afe',1,'Database::DateTime']]],
   ['seenscount',['seensCount',['../struct_database_1_1_book_part.html#aea7c69e20099ba2b2370466433ef33dc',1,'Database::BookPart::seensCount()'],['../struct_database_1_1_book.html#a4d2d91f34101271f6dbc05bc0dd31d1f',1,'Database::Book::seensCount()']]],

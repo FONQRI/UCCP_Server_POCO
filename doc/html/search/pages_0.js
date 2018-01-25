@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['uccp_5fserver',['UCCP_Server',['../md__home_fonqri_Projects_UCCP_Server_README.html',1,'']]]
+  ['apis',['APIs',['../md__home_fonqri_Projects_UCCP_Server_APIs.html',1,'']]]
 ];
