@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['updateuser',['updateUser',['../class_database.html#a2950106c2f23cc2de921f3f54eeb65b7',1,'Database']]]
+  ['updateuser',['updateUser',['../class_database.html#a4b2f141265fb6b3a9293ee921cdd8b06',1,'Database']]]
 ];

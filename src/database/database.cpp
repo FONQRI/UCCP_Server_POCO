@@ -30,7 +30,7 @@ void Database::connect()
 	uniqeUserEmail->add("email", 1);
 
 	MongoDB::Document::Ptr uniqeUserUserNumber(new MongoDB::Document());
-	uniqeUserUserNumber->add("userNumber", 1);
+	uniqeUserUserNumber->add("username", 1);
 
 	auto conn = takeConnection();
 	auto c = static_cast<MongoDB::Connection::Ptr>(conn);
@@ -38,10 +38,10 @@ void Database::connect()
 	g_db.ensureIndex(*c, "Books", "id", uniqeBookName, true);
 	g_db.ensureIndex(*c, "Users", "phoneNumber", uniqeUserPhoneNumber, true);
 	g_db.ensureIndex(*c, "Users", "email", uniqeUserEmail, true);
-	g_db.ensureIndex(*c, "Users", "userNumber", uniqeUserUserNumber, true);
+	g_db.ensureIndex(*c, "Users", "username", uniqeUserUserNumber, true);
 }
 
-Database::ResponceType
+std::string
 Database::saveBooks(std::vector<std::shared_ptr<Database::Book>> &inputBooks)
 {
 	try {
@@ -67,28 +67,6 @@ Database::saveBooks(std::vector<std::shared_ptr<Database::Book>> &inputBooks)
 
 			// get cueent date time
 			auto dateTime = getDateTime();
-
-			//*******************md5
-
-			std::string keyMD5 = inputBooks[bookIndex]->author +
-					 inputBooks[bookIndex]->name +
-					 std::to_string(dateTime->year) +
-					 std::to_string(dateTime->month) +
-					 std::to_string(dateTime->day) +
-					 std::to_string(dateTime->hour) +
-					 std::to_string(dateTime->minute) +
-					 std::to_string(dateTime->second);
-			Poco::MD5Engine md5;
-			Poco::DigestOutputStream outstr(md5);
-			outstr << keyMD5;
-			outstr.flush(); // to pass everything to the digest engine
-			const Poco::DigestEngine::Digest &digest = md5.digest();
-			std::string md5string =
-			Poco::DigestEngine::digestToHex(digest);
-
-			//*******************md5 end
-
-			bookObj->add("id", md5string);
 
 			MongoDB::Document::Ptr publishDateTime(
 			new MongoDB::Document());
@@ -377,9 +355,8 @@ Database::saveBooks(std::vector<std::shared_ptr<Database::Book>> &inputBooks)
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return Database::ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
@@ -387,11 +364,10 @@ Database::saveBooks(std::vector<std::shared_ptr<Database::Book>> &inputBooks)
 		//		std::cerr << "INSERT "
 		//			  << " failed: " << e.displayText() <<
 		// std::endl;
-		return Database::ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::saveUser(Database::User &user)
+std::string Database::saveUser(Database::User &user)
 {
 	try {
 		// take connection from pool
@@ -404,6 +380,7 @@ Database::ResponceType Database::saveUser(Database::User &user)
 		document->add("name", user.name);
 		document->add("family", user.family);
 		document->add("sex", user.sex);
+		document->add("password", user.password);
 
 		MongoDB::Array::Ptr favoriteTags(new MongoDB::Array());
 		for (size_t i = 0; i < user.favoriteTags.size(); i++) {
@@ -428,25 +405,6 @@ Database::ResponceType Database::saveUser(Database::User &user)
 
 		// get cueent date time
 		auto dateTime = getDateTime();
-
-		//*******************md5
-
-		std::string keyMD5 =
-		user.username + user.email + std::to_string(dateTime->year) +
-		std::to_string(dateTime->month) +
-		std::to_string(dateTime->day) + std::to_string(dateTime->hour) +
-		std::to_string(dateTime->minute) +
-		std::to_string(dateTime->second);
-		Poco::MD5Engine md5;
-		Poco::DigestOutputStream outstr(md5);
-		outstr << keyMD5;
-		outstr.flush(); // to pass everything to the digest engine
-		const Poco::DigestEngine::Digest &digest = md5.digest();
-		std::string md5string = Poco::DigestEngine::digestToHex(digest);
-
-		//*******************md5 end
-
-		document->add("id", md5string);
 
 		MongoDB::Document::Ptr signupDateTime(new MongoDB::Document());
 
@@ -476,10 +434,10 @@ Database::ResponceType Database::saveUser(Database::User &user)
 		c->sendRequest(*insert, response);
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
-		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
-		}
-		return ResponceType::OK;
+		// std::clog << response.documents()[0]->toString() <<
+		// std::endl;
+
+		return response.documents()[0]->toString();
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
@@ -487,7 +445,7 @@ Database::ResponceType Database::saveUser(Database::User &user)
 		//		std::cerr << "INSERT " << user.username
 		//			  << " failed: " << e.displayText() <<
 		// std::endl;
-		return ResponceType::ERROR;
+		return e.displayText();
 	}
 }
 
@@ -565,8 +523,7 @@ std::string Database::getUser(std::string &username)
 	return "";
 }
 
-Database::ResponceType
-Database::editBookInfo(std::shared_ptr<Database::Book> &inputBook)
+std::string Database::editBookInfo(std::shared_ptr<Database::Book> &inputBook)
 {
 	try {
 		// take connnection from pool
@@ -608,7 +565,7 @@ Database::editBookInfo(std::shared_ptr<Database::Book> &inputBook)
 		document->add("$set", bookObj);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", inputBook->id);
+		query->add("_id", inputBook->id);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -627,22 +584,19 @@ Database::editBookInfo(std::shared_ptr<Database::Book> &inputBook)
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << inputBook->name
 			  << " failed: " << e.displayText() << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType
-Database::editBookParts(std::vector<Database::BookPart> &bookParts,
-			std::string &bookId)
+std::string Database::editBookParts(std::vector<Database::BookPart> &bookParts,
+					std::string &bookId)
 {
 	try {
 		// take connection
@@ -681,7 +635,7 @@ Database::editBookParts(std::vector<Database::BookPart> &bookParts,
 			document->add("$set", updateValuesDoc);
 
 			MongoDB::Document::Ptr query(new MongoDB::Document());
-			query->add("id", bookId);
+			query->add("_id", bookId);
 
 			MongoDB::Document::Ptr update(new MongoDB::Document());
 			update->add("q", query).add("limit", 1);
@@ -700,21 +654,20 @@ Database::editBookParts(std::vector<Database::BookPart> &bookParts,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType Database::editBookComment(Database::Comment &comment,
-						 std::string &bookId)
+std::string Database::editBookComment(Database::Comment &comment,
+					  std::string &bookId)
 {
 	try {
 		// take connection from pool
@@ -762,12 +715,11 @@ Database::ResponceType Database::editBookComment(Database::Comment &comment,
 		bookCommentObj->add("id", md5string);
 
 		MongoDB::Document::Ptr updateValueDoc(new MongoDB::Document());
-		updateValueDoc->add("comments." + std::to_string(comment.id),
-				bookCommentObj);
+		updateValueDoc->add("comments", bookCommentObj);
 		document->add("$set", updateValueDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -788,22 +740,19 @@ Database::ResponceType Database::editBookComment(Database::Comment &comment,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::editBookPartComment(Database::Comment &comment,
-							 std::string &bookId,
-							 int &partindex)
+std::string Database::editBookPartComment(Database::Comment &comment,
+					  std::string &bookId, int &partindex)
 {
 	try {
 		// take connection from pool
@@ -842,7 +791,7 @@ Database::ResponceType Database::editBookPartComment(Database::Comment &comment,
 		document->add("$set", updateValueDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -863,20 +812,18 @@ Database::ResponceType Database::editBookPartComment(Database::Comment &comment,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::updateUser(Database::User &user)
+std::string Database::updateUser(Database::User &user)
 {
 	try {
 		// take connection from pool
@@ -912,7 +859,7 @@ Database::ResponceType Database::updateUser(Database::User &user)
 		document->add("berthday", dateDocument);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", user.id);
+		query->add("_id", user.id);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -934,20 +881,18 @@ Database::ResponceType Database::updateUser(Database::User &user)
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << user.username
 			  << " failed: " << e.displayText() << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::deleteBook(std::string &bookId)
+std::string Database::deleteBook(std::string &bookId)
 {
 
 	try {
@@ -957,7 +902,7 @@ Database::ResponceType Database::deleteBook(std::string &bookId)
 
 		// create query fro finding book
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr del(new MongoDB::Document());
 		del->add("q", query).add("limit", 1);
@@ -976,21 +921,19 @@ Database::ResponceType Database::deleteBook(std::string &bookId)
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "REMOVE " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "REMOVE " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType Database::deleteBookPart(std::string &bookId,
-						int &partIndex)
+std::string Database::deleteBookPart(std::string &bookId, int &partIndex)
 {
 	try {
 		// take connection from pool
@@ -1006,7 +949,7 @@ Database::ResponceType Database::deleteBookPart(std::string &bookId,
 		document->add("$pull", queryPartDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1028,22 +971,20 @@ Database::ResponceType Database::deleteBookPart(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::deleteBookComment(std::string &bookId,
+std::string Database::deleteBookComment(std::string &bookId,
 
-						   int &commentIndex)
+					int &commentIndex)
 {
 	try {
 		// take connection from pool
@@ -1064,7 +1005,7 @@ Database::ResponceType Database::deleteBookComment(std::string &bookId,
 
 		// create query
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1086,22 +1027,19 @@ Database::ResponceType Database::deleteBookComment(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::deleteBookPartComment(std::string &bookId,
-							   int &partIndex,
-							   int &commentIndex)
+std::string Database::deleteBookPartComment(std::string &bookId, int &partIndex,
+						int &commentIndex)
 {
 	try {
 		// take connection from pool
@@ -1125,7 +1063,7 @@ Database::ResponceType Database::deleteBookPartComment(std::string &bookId,
 		document->add("$pull", partDoc);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1147,21 +1085,18 @@ Database::ResponceType Database::deleteBookPartComment(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::deleteLikedUser(std::string &bookId,
-						 std::string &likeId)
+std::string Database::deleteLikedUser(std::string &bookId, std::string &likeId)
 {
 	try {
 		// take connection from pool
@@ -1179,7 +1114,7 @@ Database::ResponceType Database::deleteLikedUser(std::string &bookId,
 
 		// create find quert doc
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1201,22 +1136,20 @@ Database::ResponceType Database::deleteLikedUser(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType
-Database::deleteSharedWithUsers(std::string &bookId,
-				std::vector<std::string> &usernames)
+std::string Database::deleteSharedWithUsers(std::string &bookId,
+						std::vector<std::string> &usernames)
 {
 	try {
 		// take connection from pool
@@ -1238,7 +1171,7 @@ Database::deleteSharedWithUsers(std::string &bookId,
 
 		// create find query doc
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1260,21 +1193,18 @@ Database::deleteSharedWithUsers(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
 		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
 			  << std::endl;
-		return ResponceType::ERROR;
 	}
 }
 
-Database::ResponceType Database::insertPart(BookPart &inputBookPart,
-						std::string &bookId)
+std::string Database::insertPart(BookPart &inputBookPart, std::string &bookId)
 {
 	try {
 		// take connection
@@ -1342,7 +1272,7 @@ Database::ResponceType Database::insertPart(BookPart &inputBookPart,
 
 		// create find query doc
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1364,21 +1294,19 @@ Database::ResponceType Database::insertPart(BookPart &inputBookPart,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType Database::insertBookComment(Comment &comment,
-						   std::string &bookId)
+std::string Database::insertBookComment(Comment &comment, std::string &bookId)
 {
 	try {
 		// take connection from pool
@@ -1435,7 +1363,7 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 
 		// create find query
 		MongoDB::Document::Ptr query(new MongoDB::Document());
-		query->add("id", bookId);
+		query->add("_id", bookId);
 
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
@@ -1455,22 +1383,20 @@ Database::ResponceType Database::insertBookComment(Comment &comment,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType
-Database::insertBookPartComment(Database::Comment &comment, std::string &bookId,
-				int &partindex)
+std::string Database::insertBookPartComment(Database::Comment &comment,
+						std::string &bookId, int &partindex)
 {
 	try {
 		// take connection from pool
@@ -1531,7 +1457,7 @@ Database::insertBookPartComment(Database::Comment &comment, std::string &bookId,
 		MongoDB::Document::Ptr matchElementQuery(new MongoDB::Document());
 
 		// find query doc
-		query->add("id", bookId);
+		query->add("_id", bookId);
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
 		update->add("u", document);
@@ -1552,21 +1478,20 @@ Database::insertBookPartComment(Database::Comment &comment, std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType Database::insertLikedUser(std::string &bookId,
-						 std::string &username)
+std::string Database::insertLikedUser(std::string &bookId,
+					  std::string &username)
 {
 	try {
 		// take connection from pool
@@ -1617,7 +1542,7 @@ Database::ResponceType Database::insertLikedUser(std::string &bookId,
 		MongoDB::Document::Ptr matchElementQuery(new MongoDB::Document());
 
 		// init find query
-		query->add("id", bookId);
+		query->add("_id", bookId);
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
 		update->add("u", document);
@@ -1638,22 +1563,20 @@ Database::ResponceType Database::insertLikedUser(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
-Database::ResponceType
-Database::insertSharedWithUsers(std::string &bookId,
-				std::vector<std::string> &usernames)
+std::string Database::insertSharedWithUsers(std::string &bookId,
+						std::vector<std::string> &usernames)
 {
 	try {
 		// tke connection
@@ -1682,7 +1605,7 @@ Database::insertSharedWithUsers(std::string &bookId,
 		MongoDB::Document::Ptr matchElementQuery(new MongoDB::Document());
 
 		// init find request
-		query->add("id", bookId);
+		query->add("_id", bookId);
 		MongoDB::Document::Ptr update(new MongoDB::Document());
 		update->add("q", query).add("limit", 1);
 		update->add("u", document);
@@ -1703,16 +1626,15 @@ Database::insertSharedWithUsers(std::string &bookId,
 		auto doc = *(response.documents()[0]);
 		verifyResponse(doc);
 		for (auto i : response.documents()) {
-			std::cout << i->toString(2) << std::endl;
+			return i->toString(2);
 		}
-		return ResponceType::OK;
 	}
 	catch (const Exception &e) {
 		// TODO P[3] find a better way for returning error message and log
 		// TODO P[2] handle errors
-		std::cerr << "INSERT " << bookId << " failed: " << e.displayText()
-			  << std::endl;
-		return ResponceType::ERROR;
+		//		std::cerr << "INSERT " << bookId << " failed: " <<
+		// e.displayText()
+		//			  << std::endl;
 	}
 }
 
@@ -1773,7 +1695,8 @@ Int64 Database::extractInt64(const MongoDB::Document &d,
 	return num;
 }
 
-void Database::verifyResponse(const MongoDB::Document &response, bool expectOK)
+std::string Database::verifyResponse(const MongoDB::Document &response,
+					 bool expectOK)
 {
 	// TODO: Remove when updated MongoDB::Document header is used.
 	auto &r = const_cast<MongoDB::Document &>(response);
@@ -1787,21 +1710,30 @@ http://docs.mongodb.org/manual/reference/command/update/#update-command-output
 	 */
 
 	std::ostringstream ostr;
+	std::string responseJson;
 	try {
 		if (r.exists("ok")) {
 			const auto ok = extractInt64(r, "ok");
 			if (ok != 1) {
 				ostr << "Command failed: ok = " << ok << ". ";
+
+				// put response in string
+				responseJson +=
+				std::string("Command failed: ok = ") +
+				std::to_string(ok) + std::string(". ");
 			}
 		}
 		else if (expectOK) {
 			ostr << "UNEXPECTED: Missing 'ok' in response.";
+
+			// put response in string
+			responseJson += "UNEXPECTED: Missing 'ok' in response.";
 		}
 		else {
 			// Document that does not have embedded status response,
 			// e.g.from
 			// find cursor
-			return;
+			return "";
 		}
 
 		// Find, aggregate commands
@@ -1812,10 +1744,22 @@ http://docs.mongodb.org/manual/reference/command/update/#update-command-output
 		if (r.exists("errmsg")) {
 			ostr << (code >= 0 ? std::to_string(code) + ": " : "")
 			 << r.get<std::string>("errmsg");
+
+			// put response in string
+			responseJson +=
+			(code >= 0 ? std::to_string(code) + std::string(": ")
+				   : std::string("")) +
+			r.get<std::string>("errmsg");
 		}
 		if (r.exists("$err")) {
 			ostr << (code >= 0 ? std::to_string(code) + ": " : "")
 			 << r.get<std::string>("$err");
+
+			// put response in string
+			responseJson +=
+			(code >= 0 ? std::to_string(code) + std::string(": ")
+				   : std::string("")) +
+			r.get<std::string>("$err");
 		}
 
 		// insert, update, delete commands
@@ -1825,10 +1769,20 @@ http://docs.mongodb.org/manual/reference/command/update/#update-command-output
 				auto err = ev->get<MongoDB::Document::Ptr>(i);
 				const auto index = extractInt64(*err, "index");
 				const auto code = extractInt64(*err, "code");
+
 				ostr << index << ": " << code << ": "
 				 << err->get<std::string>("errmsg");
+
+				// put response in string
+				responseJson +=
+				std::to_string(index) + std::string(": ") +
+				std::to_string(code) + std::string(": ") +
+				err->get<std::string>("errmsg");
 				if ((i + 1) < ev->size()) {
 					ostr << std::endl;
+
+					// put response in string
+					responseJson += "\n";
 				}
 			}
 		}
@@ -1837,11 +1791,16 @@ http://docs.mongodb.org/manual/reference/command/update/#update-command-output
 			r.get<MongoDB::Document::Ptr>("writeConcernError");
 			if (ostr.tellp() > 0) {
 				ostr << std::endl;
+				responseJson += "\n";
 			}
 			const auto index = extractInt64(*err, "index");
 			const auto code = extractInt64(*err, "code");
 			ostr << index << ": " << code << ": "
 			 << err->get<std::string>("errmsg");
+
+			responseJson += std::to_string(index) + std::string(": ") +
+					std::to_string(code) + std::string(": ") +
+					err->get<std::string>("errmsg");
 		}
 	}
 	catch (const Exception &e) {
@@ -1851,10 +1810,13 @@ http://docs.mongodb.org/manual/reference/command/update/#update-command-output
 	}
 
 	if (ostr.tellp() > 0) {
-		std::cout << "Error response from server: " << response.toString(2)
-			  << std::endl;
-		throw Exception("MongoDB: " + ostr.str());
+		//		std::cout << "Error response from server: " <<
+		//response.toString(2)
+		//			  << std::endl;
+		responseJson = response.toString(2);
+		// throw Exception("MongoDB: " + ostr.str());
 	}
+	return responseJson;
 }
 
 std::shared_ptr<Database::DateTime> Database::getDateTime()

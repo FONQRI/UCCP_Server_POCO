@@ -60,7 +60,7 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	std::string bookId{"0"};
 	// Database::editBookParts(partVector, bookId);
 	Database::BookPart bookPart;
-	bookPart.id = 0;
+
 	bookPart.name = "anghezi";
 	books[0]->parts.push_back(bookPart);
 	// Database::saveBooks(books);
@@ -99,7 +99,7 @@ void CurrentTimeHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 	comment.content = "no i'm not";
 
 	// Database::insertLikedUser(books[0]->id, author);
-	Database::deleteLikedUser(books[0]->id, likeId);
+	//	Database::deleteLikedUser(books[0]->id, likeId);
 
 	// Database::editBookPartComment(comment, books[0]->id, partIndex);
 

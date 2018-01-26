@@ -43,7 +43,6 @@ using namespace Poco;
 class Database {
   public:
 	// enums
-	enum ResponceType { OK = 0, ERROR };
 	enum SharedMood { PRIVATE = 0, PUBLIC };
 
 	/**
@@ -76,6 +75,7 @@ class Database {
 	struct BookPart {
 	std::string id{0};
 	int version{0};
+	int index{0};
 	int seensCount{0};
 	int likesCount{0};
 	std::string content{""};
@@ -114,6 +114,7 @@ class Database {
 	long studyDuration{000000000000};
 	std::string id{""};
 	std::string username{""};
+	std::string password{""};
 	std::string name{""};
 	std::string family{""};
 	std::string sex{""};
@@ -134,17 +135,17 @@ class Database {
 	/**
 	 * @brief saveBooks : save books in database
 	 * @param inputBook : an struct of Database::Book
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
 	 */
-	static ResponceType
+	static std::string
 	saveBooks(std::vector<std::shared_ptr<Book>> &inputBooks);
 
 	/**
 	 * @brief saveUser : save book in database
 	 * @param user : uses Database::User struct
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
 	 */
-	static ResponceType saveUser(User &user);
+	static std::string saveUser(User &user);
 
 	// get functions
 	/**
@@ -165,69 +166,76 @@ class Database {
 	/**
 	 * @brief editBookInfo : edits book info
 	 * @param inputBook : Database::Book with new info
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
 	 */
-	static ResponceType editBookInfo(std::shared_ptr<Book> &inputBook);
+	static std::string editBookInfo(std::shared_ptr<Book> &inputBook);
 
 	/**
 	 * @brief editBookParts : edits book parts that given
 	 * @param bookParts : a std::vector of new or changed book parts
 	 * @param bookId : book id that should be changed
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType editBookParts(std::vector<BookPart> &bookParts,
-					  std::string &bookId);
+	static std::string editBookParts(std::vector<BookPart> &bookParts,
+					 std::string &bookId);
 
 	/**
 	 * @brief editBookComment : edits comment that is on a book
 	 * @param comment : Database::Comment struct of new comment
 	 * @param bookId : book id that should be changed
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType editBookComment(Comment &comment, std::string &bookId);
+	static std::string editBookComment(Comment &comment, std::string &bookId);
 
 	/**
 	 * @brief editBookPartComment : edits comment that is on a book part
 	 * @param comment : Database::Comment struct of new comment
 	 * @param bookId : book id that should be changed
 	 * @param partindex : index of part that comment is in it
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType
-	editBookPartComment(Comment &comment, std::string &bookId, int &partindex);
+	static std::string editBookPartComment(Comment &comment,
+					   std::string &bookId, int &partindex);
 
 	// updates
 	/**
 	 * @brief updateUser : update an existing user
 	 * @param user : Database::User struct by new info
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType updateUser(User &user);
+	static std::string updateUser(User &user);
 
 	// dletes
 	/**
 	 * @brief deleteBook : delete an existing book
 	 * @param bookId : book id that should be deleted
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType deleteBook(std::string &bookId);
+	static std::string deleteBook(std::string &bookId);
 
 	/**
 	 * @brief deleteBookPart : delete a part of existing book
 	 * @param bookId : book id
 	 * @param partIndex : part index that should be deleted
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType deleteBookPart(std::string &bookId, int &partIndex);
+	static std::string deleteBookPart(std::string &bookId, int &partIndex);
 
 	/**
 	 * @brief deleteBookComment : delete a comment from book comments
 	 * @param bookId : book id
 	 * @param commentIndex : index of comment that should be deleted from book
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType deleteBookComment(std::string &bookId,
-					  int &commentIndex);
+	static std::string deleteBookComment(std::string &bookId,
+					 int &commentIndex);
 
 	/**
 	 * @brief deleteBookPartComment : delete a comment from book part comments
@@ -235,29 +243,31 @@ class Database {
 	 * @param partIndex : part index that contains comment
 	 * @param commentIndex : index of comment that should be deleted from book
 	 * part
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static ResponceType deleteBookPartComment(std::string &bookId,
-						  int &partIndex,
-						  int &commentIndex);
+	static std::string deleteBookPartComment(std::string &bookId,
+						 int &partIndex, int &commentIndex);
 
 	/**
 	 * @brief deleteLikedUser : delete a user from users that liked book
 	 * @param bookId : book id
 	 * @param username : user name that unliked book
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType deleteLikedUser(std::string &bookId,
-						  std::string &likeId);
+	static std::string deleteLikedUser(std::string &bookId,
+					   std::string &likeId);
 
 	/**
 	 * @brief deleteSharedWithUsers : delete users that deleted from shared with
 	 * users of this book
 	 * @param bookId : book id
 	 * @param usernames : std::vector of usernames
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType
+	static std::string
 	deleteSharedWithUsers(std::string &bookId,
 			  std::vector<std::string> &usernames);
 
@@ -266,49 +276,52 @@ class Database {
 	 * @brief insertPart : inserts a part to book
 	 * @param inputBookPart : Database::BookPart of new part
 	 * @param bookId : book id
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType insertPart(BookPart &inputBookPart,
-						 std::string &bookId);
+	static std::string insertPart(BookPart &inputBookPart, std::string &bookId);
 
 	// TODO P[1] addd insertParts function
 	/**
 	 * @brief insertBookComment : inserts a comment to book
 	 * @param comment : Database::Comment of comment
 	 * @param bookId : book id
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType insertBookComment(Comment &comment,
-							std::string &bookId);
+	static std::string insertBookComment(Comment &comment, std::string &bookId);
 
 	/**
 	 * @brief insertBookPartComment :  inserts a comment to book part
 	 * @param comment :  Database::Comment of comment
 	 * @param bookId : book id
 	 * @param partindex : index of part
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType insertBookPartComment(Comment &comment,
-							std::string &bookId,
-							int &partindex);
+	static std::string insertBookPartComment(Comment &comment,
+						 std::string &bookId,
+						 int &partindex);
 
 	/**
 	 * @brief insertLikedUser : add a user when user likes book
 	 * @param bookId : book id
 	 * @param username : username of an existing user
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType insertLikedUser(std::string &bookId,
-						  std::string &username);
+	static std::string insertLikedUser(std::string &bookId,
+					   std::string &username);
 
 	/**
 	 * @brief insertSharedWithUsers : inserts users that private book is shared
 	 * with theme
 	 * @param bookId : book id
 	 * @param usernames : username
-	 * @return responce code uses Database::ResponceType
+	 * @return responce json explained in APIs.md
+
 	 */
-	static Database::ResponceType
+	static std::string
 	insertSharedWithUsers(std::string &bookId,
 			  std::vector<std::string> &usernames);
 
@@ -411,9 +424,13 @@ class Database {
 	 * @param response
 	 * @param expectOK
 	 */
-	static void verifyResponse(const MongoDB::Document &response,
-				   bool expectOK = true);
+	static std::string verifyResponse(const MongoDB::Document &response,
+					  bool expectOK = true);
 
+	/**
+	 * @brief getDateTime getting current date and time
+	 * @return Datanase::DateTime
+	 */
 	static std::shared_ptr<DateTime> getDateTime();
 };
 

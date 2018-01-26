@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['handlerequest',['handleRequest',['../class_current_time_handler.html#aead740117273244fa15342a15932d0b0',1,'CurrentTimeHandler']]],
+  ['handlerequest',['handleRequest',['../class_current_time_handler.html#aead740117273244fa15342a15932d0b0',1,'CurrentTimeHandler::handleRequest()'],['../class_sign_up.html#a5e7d16e5f89022b20692b1fec3f6ddab',1,'SignUp::handleRequest()']]],
   ['handlerfactory',['HandlerFactory',['../class_handler_factory.html',1,'HandlerFactory'],['../class_handler_factory.html#a3c6b78bb600f702c0991f79290db212d',1,'HandlerFactory::HandlerFactory()']]],
   ['handlerfactory_2ecpp',['HandlerFactory.cpp',['../_handler_factory_8cpp.html',1,'']]],
   ['handlerfactory_2eh',['HandlerFactory.h',['../_handler_factory_8h.html',1,'']]],

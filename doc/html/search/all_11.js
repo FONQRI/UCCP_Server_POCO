@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['tags',['tags',['../struct_database_1_1_book.html#aa86a4a62647c2310694922282b34ec9a',1,'Database::Book']]],
-  ['templateengine',['TemplateEngine',['../class_template_engine.html',1,'TemplateEngine'],['../class_template_engine.html#ad12f5d696ed3fc82fd729e1b6892d328',1,'TemplateEngine::TemplateEngine()']]],
-  ['templateengine_2ecpp',['templateengine.cpp',['../templateengine_8cpp.html',1,'']]],
-  ['templateengine_2eh',['templateengine.h',['../templateengine_8h.html',1,'']]],
-  ['type',['type',['../struct_database_1_1_book.html#a605fd49624adecb6466766d638dc733f',1,'Database::Book']]]
+  ['uccp_5fserver',['UCCP_Server',['../md__home_fonqri_Projects_UCCP_Server_README.html',1,'']]],
+  ['updateuser',['updateUser',['../class_database.html#a4b2f141265fb6b3a9293ee921cdd8b06',1,'Database']]],
+  ['user',['User',['../struct_database_1_1_user.html',1,'Database']]],
+  ['username',['username',['../struct_database_1_1_comment.html#a18e46b3e3736117d1aef54aeb0c5d356',1,'Database::Comment::username()'],['../struct_database_1_1_user.html#a9a93f8f328453ccbfe0ae7c65d57c75c',1,'Database::User::username()']]]
 ];

@@ -57,7 +57,7 @@ add_library(FireWall
 
 set (CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++14")
-find_package(Poco REQUIRED Foundation Util Net Data MongoDB)
+find_package(Poco REQUIRED Foundation Util Net Data MongoDB Crypto)
 add_executable(${PROJECT_NAME} "main.cpp" )
 
 
@@ -68,6 +68,7 @@ target_link_libraries(${PROJECT_NAME}
   Poco::Net
   Poco::Data
   Poco::MongoDB
+  Poco::Crypto
 
     Server
     Controller
@@ -97,6 +98,14 @@ target_link_libraries(Database
 
 target_link_libraries(TemplateEngine
   Database
+)
+
+
+
+target_link_libraries(Controller
+  Database
+  Poco::Crypto
+
 )
 
 

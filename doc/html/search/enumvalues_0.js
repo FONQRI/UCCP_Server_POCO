@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['error',['ERROR',['../class_database.html#aae2d70e919175678bdf5915ad78b9745aafc4d9324a05eef44d70346045225b6e',1,'Database']]]
+  ['private',['PRIVATE',['../class_database.html#addbd7db29f5446eb60ef14f794356279aa70918ba1e9a3ff47219840a05d8b63e',1,'Database']]],
+  ['public',['PUBLIC',['../class_database.html#addbd7db29f5446eb60ef14f794356279a9a0a6b8be1996f87329b624142be6d28',1,'Database']]]
 ];
