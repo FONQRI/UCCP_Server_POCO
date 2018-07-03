@@ -121,7 +121,7 @@ class Database {
 	std::string email{""};
 	std::string phoneNumber{""};
 	std::vector<std::string> favoriteTags;
-	DateTime berthday;
+	DateTime birthday;
 	};
 
 	/**

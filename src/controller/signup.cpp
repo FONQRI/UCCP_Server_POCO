@@ -67,18 +67,18 @@ void SignUp::handleRequest(Poco::Net::HTTPServerRequest &request,
 	tempValue = object->get("phoneNumber");
 	user.phoneNumber = tempValue.convert<std::string>();
 
-	tempValue = object->get("berthday");
+	tempValue = object->get("birthday");
 	object = tempValue.extract<Poco::JSON::Object::Ptr>();
 	tempValue = object->get("property");
 
 	tempValue = object->get("year");
-	user.berthday.year = tempValue.convert<int>();
+	user.birthday.year = tempValue.convert<int>();
 
 	tempValue = object->get("month");
-	user.berthday.month = tempValue.convert<int>();
+	user.birthday.month = tempValue.convert<int>();
 
 	tempValue = object->get("day");
-	user.berthday.day = tempValue.convert<int>();
+	user.birthday.day = tempValue.convert<int>();
 
 	std::ostream &responseStream = response.send();
 	responseStream << Database::saveUser(user);

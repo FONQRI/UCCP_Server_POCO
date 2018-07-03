@@ -394,14 +394,14 @@ std::string Database::saveUser(Database::User &user)
 		document->add("studyDuration", user.studyDuration);
 
 		MongoDB::Document::Ptr berthDocument(new MongoDB::Document());
-		berthDocument->add("day", user.berthday.day);
-		berthDocument->add("month", user.berthday.month);
-		berthDocument->add("year", user.berthday.year);
-		berthDocument->add("hour", user.berthday.hour);
-		berthDocument->add("minute", user.berthday.minute);
-		berthDocument->add("second", user.berthday.second);
+		berthDocument->add("day", user.birthday.day);
+		berthDocument->add("month", user.birthday.month);
+		berthDocument->add("year", user.birthday.year);
+		berthDocument->add("hour", user.birthday.hour);
+		berthDocument->add("minute", user.birthday.minute);
+		berthDocument->add("second", user.birthday.second);
 
-		document->add("berthday", berthDocument);
+		document->add("birthday", berthDocument);
 
 		// get cueent date time
 		auto dateTime = getDateTime();
@@ -849,14 +849,14 @@ std::string Database::updateUser(Database::User &user)
 		document->add("studyDuration", user.studyDuration);
 
 		MongoDB::Document::Ptr dateDocument(new MongoDB::Document());
-		dateDocument->add("day", user.berthday.day);
-		dateDocument->add("month", user.berthday.month);
-		dateDocument->add("year", user.berthday.year);
-		dateDocument->add("hour", user.berthday.hour);
-		dateDocument->add("minute", user.berthday.minute);
-		dateDocument->add("second", user.berthday.second);
+		dateDocument->add("day", user.birthday.day);
+		dateDocument->add("month", user.birthday.month);
+		dateDocument->add("year", user.birthday.year);
+		dateDocument->add("hour", user.birthday.hour);
+		dateDocument->add("minute", user.birthday.minute);
+		dateDocument->add("second", user.birthday.second);
 
-		document->add("berthday", dateDocument);
+		document->add("birthday", dateDocument);
 
 		MongoDB::Document::Ptr query(new MongoDB::Document());
 		query->add("_id", user.id);
